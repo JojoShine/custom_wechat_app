@@ -18,8 +18,136 @@ model User {
   updatedAt    DateTime         @updatedAt @map("updated_at")
   sessions     RefreshSession[]
   uploads      UploadIntent[]
+  payments     Payment[]
 
   @@map("users")
+}
+
+enum PaymentStatus {
+  CREATING
+  PENDING
+  SUCCEEDED
+  CLOSED
+  FAILED
+  UNKNOWN
+}
+
+enum RefundStatus {
+  REQUESTING
+  PROCESSING
+  SUCCEEDED
+  CLOSED
+  ABNORMAL
+  UNKNOWN
+}
+
+enum ReconciliationStatus {
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+model Payment {
+  id                  String        @id @default(uuid()) @db.Uuid
+  businessType        String        @map("business_type")
+  businessOrderId     String        @map("business_order_id")
+  attemptNo           Int           @default(1) @map("attempt_no")
+  idempotencyKey      String        @unique @map("idempotency_key")
+  userId              String        @db.Uuid @map("user_id")
+  amountFen           Int           @map("amount_fen")
+  currency            String        @default("CNY")
+  description         String
+  outTradeNo          String        @unique @map("out_trade_no")
+  wechatTransactionId String?       @unique @map("wechat_transaction_id")
+  prepayId            String?       @map("prepay_id")
+  prepayExpiresAt     DateTime?     @map("prepay_expires_at")
+  expiresAt           DateTime      @map("expires_at")
+  status              PaymentStatus @default(CREATING)
+  paidAt              DateTime?     @map("paid_at")
+  lastQueriedAt       DateTime?     @map("last_queried_at")
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+  user                User          @relation(fields: [userId], references: [id])
+  refunds             Refund[]
+  events              PaymentEvent[]
+
+  @@unique([businessType, businessOrderId, attemptNo])
+  @@index([businessType, businessOrderId])
+  @@index([userId])
+  @@index([status, expiresAt])
+  @@map("payments")
+}
+
+model Refund {
+  id             String       @id @default(uuid()) @db.Uuid
+  paymentId      String       @db.Uuid @map("payment_id")
+  businessRefundId String     @unique @map("business_refund_id")
+  amountFen      Int          @map("amount_fen")
+  reason         String
+  outRefundNo    String       @unique @map("out_refund_no")
+  wechatRefundId String?      @unique @map("wechat_refund_id")
+  status         RefundStatus @default(REQUESTING)
+  acceptedAt     DateTime?    @map("accepted_at")
+  succeededAt    DateTime?    @map("succeeded_at")
+  lastQueriedAt  DateTime?    @map("last_queried_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  payment        Payment      @relation(fields: [paymentId], references: [id])
+
+  @@index([paymentId, status])
+  @@index([status, lastQueriedAt])
+  @@map("refunds")
+}
+
+model PaymentEvent {
+  id              String    @id @default(uuid()) @db.Uuid
+  eventKey        String    @unique @map("event_key")
+  paymentId       String    @db.Uuid @map("payment_id")
+  refundId        String?   @db.Uuid @map("refund_id")
+  businessType    String    @map("business_type")
+  businessOrderId String    @map("business_order_id")
+  kind            String
+  status          String
+  amountFen       Int       @map("amount_fen")
+  attempts        Int       @default(0)
+  nextAttemptAt   DateTime  @default(now()) @map("next_attempt_at")
+  deliveredAt     DateTime? @map("delivered_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  payment         Payment   @relation(fields: [paymentId], references: [id])
+
+  @@index([deliveredAt, nextAttemptAt])
+  @@map("payment_events")
+}
+
+model ReconciliationRun {
+  id              String               @id @default(uuid()) @db.Uuid
+  billDate        DateTime             @db.Date @map("bill_date")
+  status          ReconciliationStatus @default(RUNNING)
+  billHash        String?              @map("bill_hash")
+  paymentRows     Int                  @default(0) @map("payment_rows")
+  refundRows      Int                  @default(0) @map("refund_rows")
+  differenceCount Int                  @default(0) @map("difference_count")
+  errorCode       String?              @map("error_code")
+  startedAt       DateTime             @default(now()) @map("started_at")
+  completedAt     DateTime?            @map("completed_at")
+  differences     ReconciliationDifference[]
+
+  @@index([billDate, startedAt])
+  @@map("reconciliation_runs")
+}
+
+model ReconciliationDifference {
+  id                String            @id @default(uuid()) @db.Uuid
+  runId             String            @db.Uuid @map("run_id")
+  kind              String
+  reference         String
+  localAmountFen    Int?              @map("local_amount_fen")
+  wechatAmountFen   Int?              @map("wechat_amount_fen")
+  detail            String?
+  run               ReconciliationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@map("reconciliation_differences")
 }
 
 enum UploadStatus {

@@ -13,7 +13,7 @@ export class FilesService {
   constructor(@Inject(PRISMA) private readonly prisma: PrismaClient, @Inject(OssProvider) private readonly oss: OssGateway) {}
 
   async authorize(userId: string, input: { contentType: string; size: number }): Promise<UploadAuthorization> {
-    const extension = extensions[input.contentType]
+    const extension = Object.hasOwn(extensions, input.contentType) ? extensions[input.contentType] : undefined
     if (!extension || !Number.isInteger(input.size) || input.size < 1 || input.size > MAX_IMAGE_BYTES) {
       throw new BadRequestException('Invalid image type or size')
     }
@@ -31,10 +31,15 @@ export class FilesService {
     if (!upload || upload.userId !== userId) throw new NotFoundException('File not found')
     const ready = { id: upload.id, contentType: upload.contentType, size: upload.expectedSize }
     if (upload.status === 'READY') return ready
+    if (upload.status === 'FAILED') throw new ConflictException('Upload intent failed')
     if (upload.expiresAt <= new Date()) throw new GoneException('Upload authorization expired')
 
     const object = await this.oss.head(upload.objectKey)
     if (!object || object.size !== upload.expectedSize || object.contentType !== upload.contentType) {
+      await this.prisma.uploadIntent.updateMany({
+        where: { id: uploadId, userId, status: 'PENDING', expiresAt: { gt: new Date() } },
+        data: { status: 'FAILED' }
+      })
       throw new ConflictException('Uploaded object does not match authorization')
     }
     const changed = await this.prisma.uploadIntent.updateMany({

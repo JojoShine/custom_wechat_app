@@ -29,10 +29,10 @@ export default function Profile(): JSX.Element {
       const user = await apiRequest<UserProfile>({ url: '/users/me', method: 'PATCH', data: { nickname } })
       setProfile(user)
       setMessage('已保存')
-      track('action', 'profile.save', profilePath, 'success')
+      track('event', 'profile.save', profilePath, 'success')
     } catch (error) {
       if (!await recoverProtectedError(error, profilePath, redirectTo)) setMessage('保存失败，请重试')
-      track('action', 'profile.save', profilePath, 'failure')
+      track('event', 'profile.save', profilePath, 'failure')
     }
   }
 
@@ -43,10 +43,10 @@ export default function Profile(): JSX.Element {
       const user = await apiRequest<UserProfile>({ url: '/users/me', method: 'PATCH', data: { avatarFileId: file.id } })
       setProfile(user)
       setMessage('头像已保存')
-      track('action', 'profile.avatar', profilePath, 'success')
+      track('event', 'profile.avatar', profilePath, 'success')
     } catch (error) {
       if (!await recoverProtectedError(error, profilePath, redirectTo)) setMessage('头像上传失败，请重试')
-      track('action', 'profile.avatar', profilePath, 'failure')
+      track('event', 'profile.avatar', profilePath, 'failure')
     }
   }
 
@@ -56,13 +56,13 @@ export default function Profile(): JSX.Element {
   }
 
   async function bindPhone(code?: string): Promise<void> {
-    if (!code) { setMessage('未授权手机号'); track('action', 'profile.phone', profilePath, 'cancelled'); return }
+    if (!code) { setMessage('未授权手机号'); track('event', 'profile.phone', profilePath, 'cancelled'); return }
     try {
       const user = await bindPhoneFromEvent({ code }, apiRequest)
-      if (user) { setProfile(user); setMessage('手机号已绑定'); track('action', 'profile.phone', profilePath, 'success') }
+      if (user) { setProfile(user); setMessage('手机号已绑定'); track('event', 'profile.phone', profilePath, 'success') }
     } catch (error) {
       if (!await recoverProtectedError(error, profilePath, redirectTo)) setMessage('手机号绑定失败，请重试')
-      track('action', 'profile.phone', profilePath, 'failure')
+      track('event', 'profile.phone', profilePath, 'failure')
     }
   }
 

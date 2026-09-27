@@ -16,7 +16,7 @@ it('requires login before accepting telemetry', async () => {
   await app.listen(0)
   try {
     const url = `${await app.getUrl()}/telemetry/events`
-    const event = { kind: 'action', name: 'profile.save', page: '/pages/profile/index', result: 'success', occurredAt: '2026-09-27T00:00:00.000Z' }
+    const event = { kind: 'event', name: 'profile.save', page: '/pages/profile/index', result: 'success', occurredAt: '2026-09-27T00:00:00.000Z' }
     const denied = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(event) })
     expect(denied.status).toBe(401)
     expect(info).not.toHaveBeenCalled()

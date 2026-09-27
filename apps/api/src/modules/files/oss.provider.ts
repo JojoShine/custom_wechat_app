@@ -22,6 +22,7 @@ export function buildUploadPolicy(input: UploadPolicyInput) {
       ['eq', '$key', input.key],
       ['eq', '$content-type', input.contentType],
       ['content-length-range', 1, input.maxBytes],
+      ['eq', '$x-oss-forbid-overwrite', 'true'],
       ['eq', '$success_action_status', '200']
     ] as Array<Record<string, string> | [string, string | number, string | number]>
   }
@@ -43,12 +44,15 @@ export class OssProvider implements OssGateway {
     }
     const url = new URL(endpoint)
     if (url.protocol !== 'https:') throw new Error('OSS_ENDPOINT must use HTTPS')
-    return { region, bucket, endpoint: url.origin, accessKeyId, accessKeySecret }
+    if (!url.hostname.startsWith(`${bucket}.`)) throw new Error('OSS_ENDPOINT must be the bucket host')
+    const sdkEndpoint = new URL(url.origin)
+    sdkEndpoint.hostname = url.hostname.slice(bucket.length + 1)
+    return { region, bucket, endpoint: url.origin, sdkEndpoint: sdkEndpoint.origin, accessKeyId, accessKeySecret }
   }
 
   private client() {
     const config = this.config()
-    return { config, client: new OSS({ ...config, secure: true }) }
+    return { config, client: new OSS({ region: config.region, bucket: config.bucket, endpoint: config.sdkEndpoint, accessKeyId: config.accessKeyId, accessKeySecret: config.accessKeySecret, secure: true, authorizationV4: true }) }
   }
 
   async signUpload(input: { key: string; contentType: string; maxBytes: number; expiresAt: Date }) {
@@ -62,6 +66,7 @@ export class OssProvider implements OssGateway {
       key: input.key,
       'content-type': input.contentType,
       'success_action_status': '200',
+      'x-oss-forbid-overwrite': 'true',
       'x-oss-signature-version': 'OSS4-HMAC-SHA256',
       'x-oss-credential': credential,
       'x-oss-date': date,

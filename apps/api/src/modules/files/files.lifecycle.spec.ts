@@ -9,10 +9,10 @@ describe('file confirmation and private read', () => {
   }
   const prisma = { uploadIntent: {
     findUnique: vi.fn(async () => ({ ...record })),
-    updateMany: vi.fn(async ({ where, data }: { where: { status: string }; data: { status: string; confirmedAt: Date } }) => {
+    updateMany: vi.fn(async ({ where, data }: { where: { status: string }; data: { status: string; confirmedAt?: Date } }) => {
       if (record.status !== where.status || record.expiresAt <= new Date()) return { count: 0 }
       record.status = data.status
-      record.confirmedAt = data.confirmedAt
+      record.confirmedAt = data.confirmedAt ?? null
       return { count: 1 }
     })
   } }
@@ -33,12 +33,19 @@ describe('file confirmation and private read', () => {
     expect(oss.head).not.toHaveBeenCalled()
   })
 
-  it('rejects missing and mismatched OSS objects', async () => {
+  it('makes a missing OSS object a terminal failure', async () => {
     oss.head.mockResolvedValueOnce(null as never)
     await expect(service.confirm('owner', 'upload-1')).rejects.toBeInstanceOf(ConflictException)
+    expect(record.status).toBe('FAILED')
+    await expect(service.confirm('owner', 'upload-1')).rejects.toBeInstanceOf(ConflictException)
+    expect(oss.head).toHaveBeenCalledTimes(1)
+  })
+
+  it('makes mismatched OSS metadata a terminal failure', async () => {
     oss.head.mockResolvedValueOnce({ size: 122, contentType: 'image/jpeg' })
     await expect(service.confirm('owner', 'upload-1')).rejects.toBeInstanceOf(ConflictException)
-    expect(record.status).toBe('PENDING')
+    expect(record.status).toBe('FAILED')
+    await expect(service.confirm('owner', 'upload-1')).rejects.toBeInstanceOf(ConflictException)
   })
 
   it('confirms once and repeats idempotently', async () => {

@@ -18,6 +18,7 @@
 ## 私有图片联调
 
 1. 创建**私有 Bucket**，`OSS_REGION`、`OSS_BUCKET` 和 HTTPS `OSS_ENDPOINT` 必须指向同一存储空间。上传对象沿用私有权限，不要设置公开读取的对象 ACL。
+   当前模板使用禁止覆盖的表单授权，Bucket 需关闭版本控制；OSS 在开启或暂停版本控制时会忽略该禁止覆盖字段。
 2. 给 API 使用的 RAM 身份授权该 Bucket 的 `users/*` 对象前缀：`oss:PutObject` 用于表单上传，`oss:GetObject` 用于 HEAD 元数据核对和签名读取。按实际地域、Bucket 和前缀收紧 Resource；不要使用全局读写权限。PostObject 和 HeadObject 的权限分别见[阿里云 PostObject 文档](https://help.aliyun.com/en/oss/developer-reference/postobject)及[HeadObject 文档](https://help.aliyun.com/en/oss/developer-reference/head-object)。
 3. 在微信公众平台登记 API 的 HTTPS **request 合法域名**，以及 OSS Bucket 域名的 **uploadFile 上传域名**和 **downloadFile 下载域名**；头像通过 OSS 签名地址加载，还需检查微信图片资源域名要求。参见[阿里云小程序接入说明](https://help.aliyun.com/zh/oss/user-guide/wechat-applet-uploads-files-directly-to-oss)。
 4. 真机登录后，在个人资料页选择 JPEG、PNG 或 WebP 图片（不超过 10 MiB）。小程序向 API 申请限时 V4 表单、直传 OSS，随后请求 API 用 HEAD 核对类型和大小并确认文件。资料保存时只提交文件 ID。再次打开资料页应返回短期签名读取地址；其他用户不应取得该地址。

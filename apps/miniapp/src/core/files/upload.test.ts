@@ -24,7 +24,8 @@ test('oversized local image is rejected before authorization', async () => {
 
 test('authorizes, uploads to OSS, and confirms', async () => {
   const ctx = setup()
-  await expect(ctx.uploader.selectAndUploadImage()).resolves.toEqual({ id: 'first', contentType: 'image/jpeg', size: 123 })
+  const detached = ctx.uploader.selectAndUploadImage
+  await expect(detached()).resolves.toEqual({ id: 'first', contentType: 'image/jpeg', size: 123 })
   expect(ctx.uploadFile).toHaveBeenCalledWith(expect.objectContaining({ url: authorization.url, filePath: '/tmp/photo.jpg', formData: authorization.fields }))
   expect(ctx.request.mock.calls.map(([arg]) => arg.url)).toEqual(['/files/uploads', '/files/uploads/first/confirm'])
 })

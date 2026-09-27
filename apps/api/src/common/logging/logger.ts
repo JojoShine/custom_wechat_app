@@ -7,8 +7,8 @@ export const appLogger = createLogger({
   transports: [new transports.Console({ stderrLevels: ['error'] })]
 })
 
-type RequestMeta = { method?: string; route?: { path?: string } }
+type RequestMeta = { method?: string; requestId?: string; route?: { path?: string } }
 
 export function safeErrorRecord(request: RequestMeta, status: number, code: string) {
-  return { category: 'error', method: request.method ?? 'UNKNOWN', path: request.route?.path ?? '/unmatched', status, code }
+  return { category: 'error', requestId: request.requestId, method: request.method ?? 'UNKNOWN', path: request.route?.path ?? '/unmatched', status, code }
 }

@@ -1,5 +1,5 @@
 export interface TelemetryEvent {
-  kind: 'action' | 'navigation' | 'error'
+  kind: 'event' | 'error'
   name: string
   page: string
   result: 'success' | 'failure' | 'cancelled'

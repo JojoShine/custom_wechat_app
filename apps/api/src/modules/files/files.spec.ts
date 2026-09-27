@@ -22,7 +22,7 @@ describe('private image upload authorization', () => {
     expect(oss.signUpload).toHaveBeenCalledWith(expect.objectContaining({ key: created[0].objectKey, contentType, maxBytes: 123 }))
   })
 
-  it.each([{ contentType: 'image/png', size: 0 }, { contentType: 'image/png', size: 10 * 1024 * 1024 + 1 }, { contentType: 'image/svg+xml', size: 100 }])
+  it.each([{ contentType: 'image/png', size: 0 }, { contentType: 'image/png', size: 10 * 1024 * 1024 + 1 }, { contentType: 'image/svg+xml', size: 100 }, { contentType: 'toString', size: 100 }, { contentType: '__proto__', size: 100 }])
   ('rejects invalid content type or size', async (input) => {
     await expect(service.authorize('user-1', input)).rejects.toBeInstanceOf(BadRequestException)
     expect(prisma.uploadIntent.create).not.toHaveBeenCalled()
@@ -57,8 +57,12 @@ describe('private image upload authorization', () => {
       })
       const policy = JSON.parse(Buffer.from(signed.fields.policy, 'base64').toString())
       expect(policy.conditions).toContainEqual(['eq', '$key', 'users/u/file.jpg'])
+      expect(policy.conditions).toContainEqual(['eq', '$x-oss-forbid-overwrite', 'true'])
+      expect(signed.fields['x-oss-forbid-overwrite']).toBe('true')
       expect(signed.fields['x-oss-signature']).toMatch(/^[a-f0-9]{64}$/)
       expect(JSON.stringify(signed)).not.toContain('test-secret')
+      const read = await new OssProvider().readUrl('users/u/file.jpg', 300)
+      expect(new URL(read).hostname).toBe('private-bucket.oss-cn-hangzhou.aliyuncs.com')
     } finally {
       for (const [key, value] of Object.entries(previous)) {
         if (value === undefined) delete process.env[key]

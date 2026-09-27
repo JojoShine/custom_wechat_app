@@ -15,10 +15,10 @@ export default function Login(): JSX.Element {
     setError('')
     try {
       await loginWithWeChat()
-      track('action', 'auth.login', '/pages/login/index', 'success')
+      track('event', 'auth.login', '/pages/login/index', 'success')
       await Taro.redirectTo({ url: safeReturnTarget(router.params.returnTo) })
     } catch {
-      track('action', 'auth.login', '/pages/login/index', 'failure')
+      track('event', 'auth.login', '/pages/login/index', 'failure')
       setError('登录失败，请重试')
     } finally {
       setBusy(false)

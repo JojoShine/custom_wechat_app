@@ -20,15 +20,14 @@ export function imageContentType(path: string): string {
 }
 
 export function createImageUploader(deps: Dependencies) {
-  return {
-    async uploadImage(filePath: string, size: number, contentType: string): Promise<ReadyFile> {
+  async function uploadImage(filePath: string, size: number, contentType: string): Promise<ReadyFile> {
       if (!filePath || !imageTypes.has(contentType) || !Number.isInteger(size) || size < 1 || size > MAX_IMAGE_BYTES) throw new Error('图片格式或大小无效')
       const authorization = await deps.request<UploadAuthorization>({ url: '/files/uploads', method: 'POST', data: { contentType, size } })
       const uploaded = await deps.uploadFile({ url: authorization.url, filePath, name: 'file', formData: authorization.fields })
       if (uploaded.statusCode < 200 || uploaded.statusCode >= 300) throw new Error('图片上传失败')
       return deps.request<ReadyFile>({ url: `/files/uploads/${authorization.uploadId}/confirm`, method: 'POST' })
-    },
-    async selectAndUploadImage(): Promise<ReadyFile | null> {
+  }
+  async function selectAndUploadImage(): Promise<ReadyFile | null> {
       let chosen: Awaited<ReturnType<Dependencies['chooseMedia']>>
       try { chosen = await deps.chooseMedia() } catch (error) {
         if (typeof error === 'object' && error !== null && 'errMsg' in error && String(error.errMsg).toLowerCase().includes('cancel')) return null
@@ -36,7 +35,7 @@ export function createImageUploader(deps: Dependencies) {
       }
       const file = chosen.tempFiles[0]
       if (!file) return null
-      return this.uploadImage(file.tempFilePath, file.size, imageContentType(file.tempFilePath))
-    }
+      return uploadImage(file.tempFilePath, file.size, imageContentType(file.tempFilePath))
   }
+  return { uploadImage, selectAndUploadImage }
 }

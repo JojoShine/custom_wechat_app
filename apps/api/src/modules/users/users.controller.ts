@@ -3,26 +3,39 @@ import type { UserProfile } from '@template/contracts'
 import type { PrismaClient } from '../../generated/prisma/client.js'
 import { PRISMA } from '../../common/database/prisma.provider.js'
 import { AccessGuard, type AuthenticatedRequest } from '../auth/access.guard.js'
+import { FilesService } from '../files/files.service.js'
 
 @Controller('users')
 @UseGuards(AccessGuard)
 export class UsersController {
-  constructor(@Inject(PRISMA) private readonly prisma: PrismaClient) {}
+  constructor(@Inject(PRISMA) private readonly prisma: PrismaClient, private readonly files: FilesService) {}
+
+  private async profile(user: { id: string; nickname: string | null; avatarFileId: string | null }): Promise<UserProfile> {
+    const avatarUrl = user.avatarFileId ? (await this.files.readUrl(user.id, user.avatarFileId)).url : null
+    return { ...user, avatarUrl }
+  }
 
   @Get('me')
   async me(@Req() request: AuthenticatedRequest): Promise<UserProfile> {
-    const user = await this.prisma.user.findUnique({ where: { id: request.userId }, select: { id: true, nickname: true } })
+    const user = await this.prisma.user.findUnique({ where: { id: request.userId }, select: { id: true, nickname: true, avatarFileId: true } })
     if (!user) throw new NotFoundException('User not found')
-    return user
+    return this.profile(user)
   }
 
   @Patch('me')
-  async updateMe(@Req() request: AuthenticatedRequest, @Body() body: { nickname?: string }): Promise<UserProfile> {
-    if (typeof body?.nickname !== 'string' || body.nickname.length > 80) throw new BadRequestException('Invalid nickname')
-    return this.prisma.user.update({
+  async updateMe(@Req() request: AuthenticatedRequest, @Body() body: { nickname?: string; avatarFileId?: string }): Promise<UserProfile> {
+    if (!body || (body.nickname === undefined && body.avatarFileId === undefined)) throw new BadRequestException('Empty profile update')
+    if (body.nickname !== undefined && (typeof body.nickname !== 'string' || body.nickname.length > 80)) throw new BadRequestException('Invalid nickname')
+    if (body.avatarFileId !== undefined) {
+      if (typeof body.avatarFileId !== 'string') throw new BadRequestException('Invalid avatar')
+      const file = await this.prisma.uploadIntent.findUnique({ where: { id: body.avatarFileId } })
+      if (!file || file.userId !== request.userId || file.status !== 'READY') throw new BadRequestException('Invalid avatar')
+    }
+    const user = await this.prisma.user.update({
       where: { id: request.userId },
-      data: { nickname: body.nickname },
-      select: { id: true, nickname: true }
+      data: { nickname: body.nickname, avatarFileId: body.avatarFileId },
+      select: { id: true, nickname: true, avatarFileId: true }
     })
+    return this.profile(user)
   }
 }

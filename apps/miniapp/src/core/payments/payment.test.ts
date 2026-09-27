@@ -42,6 +42,15 @@ test('requestPayment network failure still asks server for trusted payment statu
   expect((await flow.purchaseDemo()).status).toBe('SUCCEEDED')
 })
 
+test('retains the created payment when the later status request fails', async () => {
+  const { flow, request } = setup()
+  const created = jest.fn()
+  request.mockImplementationOnce(async () => ({ order: { id: 'order-1' }, payment: pending, launch }))
+  request.mockRejectedValueOnce(new Error('network unavailable'))
+  await expect(flow.purchaseDemo(created)).rejects.toThrow('network unavailable')
+  expect(created).toHaveBeenCalledWith(pending)
+})
+
 test('refund request sends idempotency key only and returns processing status', async () => {
   const { flow, request } = setup()
   const refund: RefundView = await flow.requestDemoRefund('order-1', 'request-1')

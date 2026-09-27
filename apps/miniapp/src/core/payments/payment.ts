@@ -14,8 +14,9 @@ export function createPaymentFlow(deps: {
     return deps.request<PaymentView>({ url: `/payments/${encodeURIComponent(paymentId)}`, method: 'GET' })
   }
 
-  async function purchaseDemo(): Promise<PaymentView> {
+  async function purchaseDemo(onCreated?: (payment: PaymentView) => void): Promise<PaymentView> {
     const { payment, launch } = await deps.request<DemoPurchaseResult>({ url: '/demo/payments/orders', method: 'POST' })
+    onCreated?.(payment)
     try { await deps.requestPayment(launch) } catch { /* The server still determines the payment result. */ }
     let latest = payment
     for (let attempt = 0; attempt < 3; attempt++) {

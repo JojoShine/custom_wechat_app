@@ -5,7 +5,7 @@ import type { Payment, PrismaClient, Refund, RefundStatus } from '../../generate
 import { PRISMA } from '../../common/database/prisma.provider.js'
 import { appLogger } from '../../common/logging/logger.js'
 import { WECHAT_PAY_GATEWAY, WECHAT_PAY_CONFIG } from './payment.service.js'
-import { WechatPayRejectedError, WechatPayUnknownError, type VerifiedNotification, type WechatPaymentResult, type WechatRefundResult } from './wechat-pay.gateway.js'
+import { WechatPayRejectedError, WechatPayUnknownError, wechatTime, type VerifiedNotification, type WechatPaymentResult, type WechatRefundResult } from './wechat-pay.gateway.js'
 
 type RefundGateway = {
   queryPayment(outTradeNo: string): Promise<WechatPaymentResult>
@@ -42,17 +42,18 @@ export class RefundService {
     }
   }
 
-  private async setStatus(refund: Refund, status: RefundStatus, refundId: string | null): Promise<Refund> {
+  private async setStatus(refund: Refund, status: RefundStatus, refundId: string | null, times?: { createTime?: string; successTime?: string }): Promise<Refund> {
     const current = await this.prisma.$transaction(async (tx) => {
       const latest = await tx.refund.findUniqueOrThrow({ where: { id: refund.id }, include: { payment: true } })
       if (latest.wechatRefundId && refundId && latest.wechatRefundId !== refundId) throw new ConflictException('Refund identity changed')
       if (['SUCCEEDED', 'CLOSED'].includes(latest.status) && latest.status !== status) return latest
       if (latest.status === status && (!refundId || latest.wechatRefundId === refundId)) return latest
+      if (times && !latest.acceptedAt) wechatTime(times.createTime)
       const changed = await tx.refund.updateMany({ where: { id: latest.id, status: latest.status }, data: {
         status, wechatRefundId: refundId ?? latest.wechatRefundId,
         lastQueriedAt: new Date(),
-        ...(status === 'PROCESSING' ? { acceptedAt: new Date() } : {}),
-        ...(status === 'SUCCEEDED' ? { succeededAt: new Date() } : {})
+        ...(times?.createTime && !latest.acceptedAt ? { acceptedAt: wechatTime(times.createTime) } : {}),
+        ...(status === 'SUCCEEDED' ? { succeededAt: wechatTime(times?.successTime) } : {})
       } })
       if (!changed.count) return tx.refund.findUniqueOrThrow({ where: { id: latest.id } })
       await tx.paymentEvent.create({ data: {
@@ -109,7 +110,7 @@ export class RefundService {
       const result = await this.gateway.createRefund({ outTradeNo: payment.outTradeNo, outRefundNo: refund.outRefundNo,
         amountFen: refund.amountFen, totalFen: payment.amountFen, reason: refund.reason })
       this.verifyRefund(result, refund, payment)
-      return this.view(await this.setStatus(refund, this.mapStatus(result.status), result.refundId))
+      return this.view(await this.setStatus(refund, this.mapStatus(result.status), result.refundId, result))
     } catch (error) {
       if (error instanceof WechatPayRejectedError) {
         // A definite rejection still needs an auditable local outcome; CLOSED releases its reservation.
@@ -141,7 +142,7 @@ export class RefundService {
     try {
       const result = await this.gateway.queryRefund(refund.outRefundNo)
       this.verifyRefund(result, refund, refund.payment)
-      return this.view(await this.setStatus(refund, this.mapStatus(result.status), result.refundId))
+      return this.view(await this.setStatus(refund, this.mapStatus(result.status), result.refundId, result))
     } catch (error) {
       if (error instanceof WechatPayRejectedError && error.status === 404 && ['REQUESTING', 'UNKNOWN'].includes(refund.status)) {
         return this.submitRefund(refund, refund.payment)
@@ -166,6 +167,13 @@ export class RefundService {
     }
     const status = notification.eventType.slice('REFUND.'.length)
     if (data.refund_status !== status) throw new BadRequestException('Refund notification status mismatch')
-    await this.setStatus(refund, this.mapStatus(status), data.refund_id)
+    let createTime: string | undefined
+    if (!refund.acceptedAt) {
+      const queried = await this.gateway.queryRefund(refund.outRefundNo)
+      this.verifyRefund(queried, refund, refund.payment)
+      if (queried.refundId !== data.refund_id) throw new BadRequestException('Refund notification identity mismatch')
+      createTime = queried.createTime
+    }
+    await this.setStatus(refund, this.mapStatus(status), data.refund_id, { createTime, successTime: data.success_time as string | undefined })
   }
 }

@@ -32,7 +32,7 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('verified payment notifications'
     return { eventType: 'TRANSACTION.SUCCESS', data: {
       appid: 'wx-app', mchid: 'mch-1', out_trade_no: payment.outTradeNo,
       transaction_id: `tx-${payment.id}`, trade_state: 'SUCCESS',
-      amount: { total: 10, currency: 'CNY' }, ...changes
+      success_time: '2026-09-27T12:00:00+08:00', amount: { total: 10, currency: 'CNY' }, ...changes
     } }
   }
 
@@ -43,6 +43,13 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('verified payment notifications'
     const stored = await prisma.payment.findUniqueOrThrow({ where: { id: payment.id } })
     expect(stored).toMatchObject({ status: 'SUCCEEDED', wechatTransactionId: `tx-${payment.id}` })
     expect(await prisma.paymentEvent.count({ where: { paymentId: payment.id, status: 'SUCCEEDED' } })).toBe(1)
+  })
+
+  test('uses WeChat success time for a callback arriving after midnight', async () => {
+    const payment = await pendingPayment()
+    const service = new PaymentService(prisma, gateway, config)
+    await service.applyVerifiedPayment(notice(payment, { success_time: '2026-09-26T23:59:30+08:00' }))
+    expect((await prisma.payment.findUniqueOrThrow({ where: { id: payment.id } })).paidAt?.toISOString()).toBe('2026-09-26T15:59:30.000Z')
   })
 
   test('rejects wrong merchant, amount or order identity without changing payment', async () => {

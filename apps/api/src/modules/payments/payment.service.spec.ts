@@ -81,6 +81,24 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('PaymentService', () => {
     expect(fake.createPrepay.mock.calls[1]?.[0].outTradeNo).toBe(uncertain.outTradeNo)
   })
 
+  test('commits the merchant payment number before calling WeChat', async () => {
+    const owner = await user()
+    const fake = gateway()
+    const service = new PaymentService(prisma, fake, config)
+    const request = input(owner.id)
+    let visible = false
+    fake.createPrepay.mockImplementationOnce(async ({ outTradeNo }) => {
+      visible = !!await prisma.payment.findUnique({ where: { outTradeNo } })
+      throw new WechatPayUnknownError('interrupted after remote acceptance')
+    })
+    await expect(service.createPrepay(request)).rejects.toThrow()
+    expect(visible).toBe(true)
+    const stored = await prisma.payment.findFirstOrThrow({ where: { businessOrderId: request.businessOrderId } })
+    expect(stored.status).toBe('UNKNOWN')
+    await service.createPrepay(request)
+    expect(fake.createPrepay.mock.calls[1]?.[0].outTradeNo).toBe(stored.outTradeNo)
+  })
+
   test('only the owner can query a payment and a paid order cannot prepay again', async () => {
     const owner = await user()
     const stranger = await user()
@@ -90,5 +108,19 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('PaymentService', () => {
     await expect(service.getPayment(stranger.id, payment.id)).rejects.toThrow()
     await prisma.payment.update({ where: { id: payment.id }, data: { status: 'SUCCEEDED' } })
     await expect(service.createPrepay(request)).rejects.toThrow()
+  })
+
+  test('owner status query actively confirms payment when callback is delayed', async () => {
+    const owner = await user()
+    const stranger = await user()
+    const fake = gateway()
+    const service = new PaymentService(prisma, fake, config)
+    const created = await service.createPrepay(input(owner.id))
+    fake.queryPayment.mockResolvedValue({ outTradeNo: (await prisma.payment.findUniqueOrThrow({ where: { id: created.payment.id } })).outTradeNo,
+      transactionId: `wx-${created.payment.id}`, tradeState: 'SUCCESS', amountFen: 10, currency: 'CNY', appId: 'wx-app', mchId: 'mch-1', successTime: '2026-09-27T12:00:00+08:00' })
+    await expect(service.getPayment(stranger.id, created.payment.id)).rejects.toThrow()
+    expect(fake.queryPayment).not.toHaveBeenCalled()
+    expect((await service.getPayment(owner.id, created.payment.id)).status).toBe('SUCCEEDED')
+    expect(fake.queryPayment).toHaveBeenCalledTimes(1)
   })
 })

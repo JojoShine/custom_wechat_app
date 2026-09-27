@@ -41,10 +41,11 @@ export class PaymentRecovery implements OnModuleInit, OnModuleDestroy {
       const candidates = await this.prisma.payment.findMany({
         where: { status: { in: ['CREATING', 'PENDING', 'UNKNOWN'] },
           OR: [{ expiresAt: { lte: now } }, { lastQueriedAt: null }, { lastQueriedAt: { lte: queryBefore } }] },
-        orderBy: { createdAt: 'asc' }, take: 20
+        orderBy: [{ lastQueriedAt: { sort: 'asc', nulls: 'first' } }, { createdAt: 'asc' }], take: 20
       })
       for (const payment of candidates) {
         try {
+          await this.prisma.payment.update({ where: { id: payment.id }, data: { lastQueriedAt: now } })
           if (payment.expiresAt <= now) await this.payments.closeExpired(payment.id)
           else await this.payments.refreshPayment(payment.id)
         } catch {
@@ -55,10 +56,13 @@ export class PaymentRecovery implements OnModuleInit, OnModuleDestroy {
       const refundCandidates = await this.prisma.refund.findMany({
         where: { status: { in: ['REQUESTING', 'PROCESSING', 'UNKNOWN', 'ABNORMAL'] },
           OR: [{ lastQueriedAt: { lte: queryBefore } }, { lastQueriedAt: null, createdAt: { lte: queryBefore } }] },
-        orderBy: { createdAt: 'asc' }, take: 20
+        orderBy: [{ lastQueriedAt: { sort: 'asc', nulls: 'first' } }, { createdAt: 'asc' }], take: 20
       })
       for (const refund of refundCandidates) {
-        try { await this.refunds.refreshRefund(refund.id) }
+        try {
+          await this.prisma.refund.update({ where: { id: refund.id }, data: { lastQueriedAt: now } })
+          await this.refunds.refreshRefund(refund.id)
+        }
         catch { appLogger.warn({ category: 'payment_recovery', code: 'REFUND_RETRY', refundId: refund.id }) }
       }
       let events = 0

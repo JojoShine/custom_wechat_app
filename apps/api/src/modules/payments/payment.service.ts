@@ -6,7 +6,7 @@ import type { Payment } from '../../generated/prisma/client.js'
 import { PRISMA } from '../../common/database/prisma.provider.js'
 import type { WechatPayConfig } from '../../common/config/app-config.js'
 import { createMiniappPayParams } from './wechat-pay.crypto.js'
-import { WechatPayRejectedError, WechatPayUnknownError, type VerifiedNotification, type WechatPaymentResult } from './wechat-pay.gateway.js'
+import { WechatPayRejectedError, WechatPayUnknownError, wechatTime, type VerifiedNotification, type WechatPaymentResult } from './wechat-pay.gateway.js'
 
 export const WECHAT_PAY_GATEWAY = Symbol('WECHAT_PAY_GATEWAY')
 export const WECHAT_PAY_CONFIG = Symbol('WECHAT_PAY_CONFIG')
@@ -49,7 +49,7 @@ export class PaymentService {
     if (!Number.isInteger(input.amountFen) || input.amountFen <= 0 || !input.businessType || !input.businessOrderId || !input.description || !input.idempotencyKey) {
       throw new BadRequestException('Invalid payment intent')
     }
-    const result = await this.prisma.$transaction(async (tx) => {
+    const reservation = await this.prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtext(${input.businessType}), hashtext(${input.businessOrderId}))`
       const user = await tx.user.findUnique({ where: { id: input.userId } })
       if (!user) throw new NotFoundException('User not found')
@@ -62,10 +62,6 @@ export class PaymentService {
       }
       if (latest?.status === 'SUCCEEDED') throw new ConflictException('Business order already paid')
       if (latest?.status === 'FAILED') throw new ConflictException('Payment attempt failed')
-      if (latest?.status === 'PENDING' && latest.prepayId) {
-        return { payment: latest, prepayId: latest.prepayId, error: null }
-      }
-
       let payment = latest
       if (!payment || payment.status === 'CLOSED') {
         payment = await tx.payment.create({
@@ -77,11 +73,21 @@ export class PaymentService {
             expiresAt: new Date(Date.now() + 30 * 60_000)
           }
         })
-      } else {
+        return { payment, openId: user.wechatOpenId, created: true }
+      }
+      return { payment, openId: user.wechatOpenId, created: false }
+    })
+    const result = await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtext(${input.businessType}), hashtext(${input.businessOrderId}))`
+      let payment = await tx.payment.findUniqueOrThrow({ where: { id: reservation.payment.id } })
+      if (payment.status === 'SUCCEEDED') throw new ConflictException('Business order already paid')
+      if (payment.status === 'FAILED' || payment.status === 'CLOSED') throw new ConflictException('Payment attempt unavailable')
+      if (payment.status === 'PENDING' && payment.prepayId) return { payment, prepayId: payment.prepayId, error: null }
+      if (!reservation.created) {
         const queried = await this.queryResult(payment)
         if (queried?.tradeState === 'SUCCESS') {
           if (!queried.transactionId) throw new WechatPayUnknownError('Paid order has no WeChat transaction ID')
-          payment = await tx.payment.update({ where: { id: payment.id }, data: { status: 'SUCCEEDED', wechatTransactionId: queried.transactionId, paidAt: new Date(), lastQueriedAt: new Date() } })
+          payment = await tx.payment.update({ where: { id: payment.id }, data: { status: 'SUCCEEDED', wechatTransactionId: queried.transactionId, paidAt: wechatTime(queried.successTime), lastQueriedAt: new Date() } })
           await tx.paymentEvent.create({ data: {
             eventKey: `payment:${payment.id}:SUCCEEDED`, paymentId: payment.id,
             businessType: payment.businessType, businessOrderId: payment.businessOrderId,
@@ -92,7 +98,7 @@ export class PaymentService {
       }
 
       try {
-        const { prepayId } = await this.gateway.createPrepay({ outTradeNo: payment.outTradeNo, openId: user.wechatOpenId, amountFen: payment.amountFen, description: payment.description })
+        const { prepayId } = await this.gateway.createPrepay({ outTradeNo: payment.outTradeNo, openId: reservation.openId, amountFen: payment.amountFen, description: payment.description })
         payment = await tx.payment.update({ where: { id: payment.id }, data: { status: 'PENDING', prepayId, prepayExpiresAt: payment.expiresAt } })
         return { payment, prepayId, error: null }
       } catch (error) {
@@ -123,7 +129,13 @@ export class PaymentService {
   async getPayment(userId: string, paymentId: string): Promise<PaymentView> {
     const payment = await this.prisma.payment.findUnique({ where: { id: paymentId } })
     if (!payment || payment.userId !== userId) throw new NotFoundException('Payment not found')
-    return this.view(payment)
+    if (payment.status === 'SUCCEEDED' || payment.status === 'CLOSED') return this.view(payment)
+    try {
+      return await this.refreshPayment(payment.id)
+    } catch (error) {
+      if (error instanceof WechatPayUnknownError) return this.view(payment)
+      throw error
+    }
   }
 
   async applyVerifiedPayment(notification: VerifiedNotification): Promise<void> {
@@ -140,10 +152,10 @@ export class PaymentService {
       amount?.total !== payment.amountFen || amount.currency !== 'CNY') {
       throw new BadRequestException('Payment notification does not match local payment')
     }
-    await this.markSucceeded(payment, transactionId)
+    await this.markSucceeded(payment, transactionId, wechatTime(data.success_time))
   }
 
-  private async markSucceeded(payment: Payment, transactionId: string): Promise<Payment> {
+  private async markSucceeded(payment: Payment, transactionId: string, paidAt: Date): Promise<Payment> {
     return this.prisma.$transaction(async (tx) => {
       const current = await tx.payment.findUniqueOrThrow({ where: { id: payment.id } })
       if (current.status === 'SUCCEEDED' && current.wechatTransactionId !== transactionId) {
@@ -151,7 +163,7 @@ export class PaymentService {
       }
       const changed = await tx.payment.updateMany({
         where: { id: payment.id, status: { not: 'SUCCEEDED' } },
-        data: { status: 'SUCCEEDED', wechatTransactionId: transactionId, paidAt: new Date(), lastQueriedAt: new Date() }
+        data: { status: 'SUCCEEDED', wechatTransactionId: transactionId, paidAt, lastQueriedAt: new Date() }
       })
       if (changed.count) {
         await tx.paymentEvent.create({ data: {
@@ -172,7 +184,7 @@ export class PaymentService {
     if (!result) return this.view(payment)
     if (result.tradeState === 'SUCCESS') {
       if (!result.transactionId) throw new WechatPayUnknownError('Paid order has no WeChat transaction ID')
-      return this.view(await this.markSucceeded(payment, result.transactionId))
+      return this.view(await this.markSucceeded(payment, result.transactionId, wechatTime(result.successTime)))
     }
     const status = result.tradeState === 'SUCCESS' ? 'SUCCEEDED'
       : result.tradeState === 'CLOSED' || result.tradeState === 'REVOKED' ? 'CLOSED'

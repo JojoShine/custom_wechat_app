@@ -1,6 +1,6 @@
 import { createCipheriv, createHash, generateKeyPairSync, sign } from 'node:crypto'
 import { describe, expect, test, vi } from 'vitest'
-import { WechatPayGateway } from './wechat-pay.gateway.js'
+import { WechatPayGateway, WechatPayUnknownError } from './wechat-pay.gateway.js'
 
 const merchant = generateKeyPairSync('rsa', { modulusLength: 2048 })
 const wechat = generateKeyPairSync('rsa', { modulusLength: 2048 })
@@ -42,6 +42,14 @@ describe('verified WeChat Pay gateway', () => {
     await expect(wrongKey.createPrepay({ outTradeNo: 'a', openId: 'o', amountFen: 1, description: 'A' })).rejects.toThrow()
   })
 
+  test('treats signed retryable refund errors as an unknown outcome', async () => {
+    for (const [status, code] of [[500, 'SYSTEM_ERROR'], [429, 'FREQUENCY_LIMITED']] as const) {
+      const gateway = new WechatPayGateway(config, vi.fn(async () => signedResponse(JSON.stringify({ code }), { status })))
+      await expect(gateway.createRefund({ outTradeNo: 'pay-1', outRefundNo: 'refund-1', amountFen: 1, totalFen: 10, reason: 'test' }))
+        .rejects.toBeInstanceOf(WechatPayUnknownError)
+    }
+  })
+
   test('rejects a bill whose downloaded bytes do not match the signed hash', async () => {
     const billUrl = 'https://api.mch.weixin.qq.com/v3/bill/downloadurl?token=test'
     const metadata = JSON.stringify({ download_url: billUrl, hash_type: 'SHA1', hash_value: createHash('sha1').update('expected').digest('hex') })
@@ -53,17 +61,17 @@ describe('verified WeChat Pay gateway', () => {
   test('queries payment and refund by merchant numbers and closes an unpaid payment', async () => {
     const fetcher = vi.fn(async (url: string) => {
       if (url.includes('/close')) return signedResponse('', { status: 204 })
-      if (url.includes('/out-trade-no/')) return signedResponse(JSON.stringify({ appid: 'wx-app', mchid: 'mch-1', out_trade_no: 'pay-1', transaction_id: 'wx-tx-1', trade_state: 'SUCCESS', amount: { total: 10, currency: 'CNY' } }))
-      return signedResponse(JSON.stringify({ out_trade_no: 'pay-1', out_refund_no: 'refund-1', refund_id: 'wx-refund-1', status: 'PROCESSING', amount: { refund: 1, total: 10 } }))
+      if (url.includes('/out-trade-no/')) return signedResponse(JSON.stringify({ appid: 'wx-app', mchid: 'mch-1', out_trade_no: 'pay-1', transaction_id: 'wx-tx-1', trade_state: 'SUCCESS', success_time: '2026-09-27T12:00:00+08:00', amount: { total: 10, currency: 'CNY' } }))
+      return signedResponse(JSON.stringify({ out_trade_no: 'pay-1', out_refund_no: 'refund-1', refund_id: 'wx-refund-1', status: 'PROCESSING', create_time: '2026-09-27T12:00:00+08:00', amount: { refund: 1, total: 10 } }))
     })
     const gateway = new WechatPayGateway(config, fetcher)
-    await expect(gateway.queryPayment('pay-1')).resolves.toMatchObject({ outTradeNo: 'pay-1', transactionId: 'wx-tx-1', amountFen: 10, tradeState: 'SUCCESS' })
-    await expect(gateway.queryRefund('refund-1')).resolves.toMatchObject({ outRefundNo: 'refund-1', amountFen: 1, status: 'PROCESSING' })
+    await expect(gateway.queryPayment('pay-1')).resolves.toMatchObject({ outTradeNo: 'pay-1', transactionId: 'wx-tx-1', amountFen: 10, tradeState: 'SUCCESS', successTime: '2026-09-27T12:00:00+08:00' })
+    await expect(gateway.queryRefund('refund-1')).resolves.toMatchObject({ outRefundNo: 'refund-1', amountFen: 1, status: 'PROCESSING', createTime: '2026-09-27T12:00:00+08:00' })
     await expect(gateway.closePayment('pay-1')).resolves.toBeUndefined()
   })
 
   test('creates a refund using the original total and separate refund amount', async () => {
-    const fetcher = vi.fn(async () => signedResponse(JSON.stringify({ out_trade_no: 'pay-1', out_refund_no: 'refund-1', refund_id: 'wx-refund-1', status: 'PROCESSING', amount: { refund: 1, total: 10 } })))
+    const fetcher = vi.fn(async () => signedResponse(JSON.stringify({ out_trade_no: 'pay-1', out_refund_no: 'refund-1', refund_id: 'wx-refund-1', status: 'PROCESSING', create_time: '2026-09-27T12:00:00+08:00', amount: { refund: 1, total: 10 } })))
     const gateway = new WechatPayGateway(config, fetcher)
     await expect(gateway.createRefund({ outTradeNo: 'pay-1', outRefundNo: 'refund-1', amountFen: 1, totalFen: 10, reason: 'test' }))
       .resolves.toMatchObject({ outTradeNo: 'pay-1', outRefundNo: 'refund-1', amountFen: 1, totalFen: 10 })

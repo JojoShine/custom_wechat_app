@@ -82,4 +82,14 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('PaymentRecovery', () => {
     release()
     await first
   })
+
+  test('reaches a newer payment after the first twenty remain pending', async () => {
+    const now = new Date()
+    const items = []
+    for (let index = 0; index < 21; index++) items.push(await payment('PENDING', new Date(now.getTime() + 180000)))
+    const { recovery, payments } = services()
+    await recovery.runOnce(now)
+    await recovery.runOnce(new Date(now.getTime() + 61000))
+    expect(payments.refreshPayment).toHaveBeenCalledWith(items[20].id)
+  })
 })

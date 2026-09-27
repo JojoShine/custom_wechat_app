@@ -29,12 +29,19 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('verified refund notifications',
     } })
     return { payment, refund }
   }
-  const gateway = { queryPayment: async () => { throw new Error('unused') }, createRefund: async () => { throw new Error('unused') }, queryRefund: async () => { throw new Error('unused') } }
+  const gateway = { queryPayment: async () => { throw new Error('unused') }, createRefund: async () => { throw new Error('unused') },
+    queryRefund: async (outRefundNo: string) => {
+      const refund = await prisma.refund.findUniqueOrThrow({ where: { outRefundNo }, include: { payment: true } })
+      return { outTradeNo: refund.payment.outTradeNo, outRefundNo, refundId: `wx-${refund.id}`,
+        status: 'PROCESSING', amountFen: refund.amountFen, totalFen: refund.payment.amountFen,
+        createTime: '2026-09-27T11:59:00+08:00' }
+    } }
   function notice(payment: Awaited<ReturnType<typeof fixture>>['payment'], refund: Awaited<ReturnType<typeof fixture>>['refund'], status = 'SUCCESS') {
     return { eventType: `REFUND.${status}`, data: {
       mchid: 'mch-1', transaction_id: payment.wechatTransactionId,
       out_trade_no: payment.outTradeNo, out_refund_no: refund.outRefundNo,
-      refund_id: `wx-${refund.id}`, refund_status: status, amount: { total: 10, refund: 6 }
+      refund_id: `wx-${refund.id}`, refund_status: status,
+      success_time: '2026-09-27T12:00:00+08:00', amount: { total: 10, refund: 6 }
     } }
   }
 
@@ -52,7 +59,10 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('verified refund notifications',
     const service = new RefundService(prisma, gateway, { appId: 'wx-app', mchId: 'mch-1' })
     await Promise.all([service.applyVerifiedRefund(notice(payment, refund)), service.applyVerifiedRefund(notice(payment, refund))])
     await service.applyVerifiedRefund(notice(payment, refund, 'ABNORMAL'))
-    expect((await prisma.refund.findUniqueOrThrow({ where: { id: refund.id } })).status).toBe('SUCCEEDED')
+    const stored = await prisma.refund.findUniqueOrThrow({ where: { id: refund.id } })
+    expect(stored.status).toBe('SUCCEEDED')
+    expect(stored.acceptedAt?.toISOString()).toBe('2026-09-27T03:59:00.000Z')
+    expect(stored.succeededAt?.toISOString()).toBe('2026-09-27T04:00:00.000Z')
     expect(await prisma.paymentEvent.count({ where: { refundId: refund.id, status: 'SUCCEEDED' } })).toBe(1)
   })
 

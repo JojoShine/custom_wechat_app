@@ -3,7 +3,7 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest'
 import { PrismaClient } from '../../generated/prisma/client.js'
 import { RefundService } from './refund.service.js'
-import { WechatPayRejectedError, WechatPayUnknownError } from './wechat-pay.gateway.js'
+import { WechatPayRejectedError, WechatPayUnknownError, type WechatRefundResult } from './wechat-pay.gateway.js'
 
 describe.skipIf(!process.env.TEST_DATABASE_URL)('RefundService', () => {
   let prisma: PrismaClient
@@ -31,10 +31,11 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('RefundService', () => {
         tradeState: 'SUCCESS', amountFen: 10, currency: 'CNY', appId: 'wx-app', mchId: 'mch-1' })),
       createRefund: vi.fn(async (input: { outTradeNo: string; outRefundNo: string; amountFen: number; totalFen: number; reason: string }) => ({
         outTradeNo: input.outTradeNo, outRefundNo: input.outRefundNo, refundId: `wx-${input.outRefundNo}`,
-        status: 'PROCESSING', amountFen: input.amountFen, totalFen: input.totalFen
+        status: 'PROCESSING', amountFen: input.amountFen, totalFen: input.totalFen, createTime: '2026-09-27T12:00:00+08:00'
       })),
-      queryRefund: vi.fn(async (outRefundNo: string) => ({
-        outTradeNo: p.outTradeNo, outRefundNo, refundId: `wx-${outRefundNo}`, status: 'PROCESSING', amountFen: 1, totalFen: 10
+      queryRefund: vi.fn(async (outRefundNo: string): Promise<WechatRefundResult> => ({
+        outTradeNo: p.outTradeNo, outRefundNo, refundId: `wx-${outRefundNo}`, status: 'PROCESSING', amountFen: 1, totalFen: 10,
+        createTime: '2026-09-27T12:00:00+08:00'
       }))
     }
   }
@@ -78,6 +79,43 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('RefundService', () => {
     expect((await prisma.refund.findUniqueOrThrow({ where: { id: first.id } })).outRefundNo).toBe(stored.outRefundNo)
     expect(fake.queryRefund).toHaveBeenCalledWith(stored.outRefundNo)
     expect(fake.createRefund).toHaveBeenCalledTimes(1)
+  })
+
+  test('records WeChat acceptance time when an uncertain refund later succeeds', async () => {
+    const paid = await payment()
+    const fake = gateway(paid)
+    fake.createRefund.mockRejectedValueOnce(new WechatPayUnknownError('timeout'))
+    const service = new RefundService(prisma, fake, config)
+    const first = await service.requestRefund(input(paid.id))
+    fake.queryRefund.mockResolvedValueOnce({ outTradeNo: paid.outTradeNo,
+      outRefundNo: (await prisma.refund.findUniqueOrThrow({ where: { id: first.id } })).outRefundNo,
+      refundId: 'wx-refund', status: 'SUCCESS', amountFen: 1, totalFen: 10,
+      createTime: '2026-09-26T23:59:30+08:00', successTime: '2026-09-27T00:01:00+08:00' })
+    await service.refreshRefund(first.id)
+    const stored = await prisma.refund.findUniqueOrThrow({ where: { id: first.id } })
+    expect(stored.acceptedAt?.toISOString()).toBe('2026-09-26T15:59:30.000Z')
+    expect(stored.succeededAt?.toISOString()).toBe('2026-09-26T16:01:00.000Z')
+  })
+
+  test('keeps ambiguous refund amount reserved and accepts a later success notice', async () => {
+    const paid = await payment()
+    const fake = gateway(paid)
+    fake.createRefund.mockRejectedValueOnce(new WechatPayUnknownError('signed 500'))
+    const service = new RefundService(prisma, fake, config)
+    const first = await service.requestRefund(input(paid.id, 10))
+    expect(first.status).toBe('UNKNOWN')
+    await prisma.refund.update({ where: { id: first.id }, data: { createdAt: new Date(Date.now() - 120_000) } })
+    await expect(service.requestRefund(input(paid.id, 1))).rejects.toThrow()
+    const stored = await prisma.refund.findUniqueOrThrow({ where: { id: first.id } })
+    fake.queryRefund.mockResolvedValueOnce({ outTradeNo: paid.outTradeNo, outRefundNo: stored.outRefundNo,
+      refundId: 'wx-refund-late', status: 'SUCCESS', amountFen: stored.amountFen, totalFen: paid.amountFen,
+      createTime: '2026-09-27T11:59:00+08:00', successTime: '2026-09-27T12:00:00+08:00' })
+    await service.applyVerifiedRefund({ eventType: 'REFUND.SUCCESS', data: {
+      mchid: 'mch-1', transaction_id: paid.wechatTransactionId, out_trade_no: paid.outTradeNo,
+      out_refund_no: stored.outRefundNo, refund_id: 'wx-refund-late', refund_status: 'SUCCESS',
+      success_time: '2026-09-27T12:00:00+08:00', amount: { total: paid.amountFen, refund: stored.amountFen }
+    } })
+    expect((await prisma.refund.findUniqueOrThrow({ where: { id: first.id } })).status).toBe('SUCCEEDED')
   })
 
   test('retries the same merchant refund number after a signed not-found query', async () => {

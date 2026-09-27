@@ -13,6 +13,7 @@ export interface WechatPaymentResult {
   currency: string
   appId: string
   mchId: string
+  successTime?: string
 }
 
 export interface WechatRefundResult {
@@ -22,6 +23,17 @@ export interface WechatRefundResult {
   status: string
   amountFen: number
   totalFen: number
+  createTime?: string
+  successTime?: string
+}
+
+export function wechatTime(value: unknown): Date {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) {
+    throw new WechatPayUnknownError('Missing or invalid WeChat Pay time')
+  }
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) throw new WechatPayUnknownError('Invalid WeChat Pay time')
+  return date
 }
 
 export type VerifiedNotification = { eventType: string; data: Record<string, unknown> }
@@ -66,6 +78,9 @@ export class WechatPayGateway {
     if (!response.ok) {
       let code = 'UNKNOWN'
       try { code = (JSON.parse(rawBody) as { code?: string }).code ?? code } catch { /* signed non-JSON error */ }
+      if (response.status >= 500 || response.status === 429 || code === 'SYSTEM_ERROR' || code === 'FREQUENCY_LIMITED') {
+        throw new WechatPayUnknownError(`WeChat Pay request outcome unknown: ${code}`)
+      }
       throw new WechatPayRejectedError(response.status, code)
     }
     if (!rawBody) return undefined as T
@@ -87,10 +102,12 @@ export class WechatPayGateway {
     const amount = value.amount as { total?: number; currency?: string } | undefined
     const total = amount?.total
     if (typeof total !== 'number' || !Number.isInteger(total) || total <= 0) throw new WechatPayUnknownError('Invalid WeChat Pay payment amount')
+    if (value.trade_state === 'SUCCESS') wechatTime(value.success_time)
     return {
       outTradeNo: String(value.out_trade_no ?? ''), transactionId: value.transaction_id ? String(value.transaction_id) : null,
       tradeState: String(value.trade_state ?? ''), amountFen: total, currency: String(amount?.currency ?? ''),
-      appId: String(value.appid ?? ''), mchId: String(value.mchid ?? '')
+      appId: String(value.appid ?? ''), mchId: String(value.mchid ?? ''),
+      ...(value.success_time ? { successTime: String(value.success_time) } : {})
     }
   }
 
@@ -118,10 +135,14 @@ export class WechatPayGateway {
       typeof totalFen !== 'number' || !Number.isInteger(totalFen) || totalFen < refundFen) {
       throw new WechatPayUnknownError('Invalid WeChat Pay refund amount')
     }
+    wechatTime(value.create_time)
+    if (value.status === 'SUCCESS') wechatTime(value.success_time)
     return {
       outTradeNo: String(value.out_trade_no ?? ''), outRefundNo: String(value.out_refund_no ?? ''),
       refundId: value.refund_id ? String(value.refund_id) : null, status: String(value.status ?? ''),
-      amountFen: refundFen, totalFen
+      amountFen: refundFen, totalFen,
+      ...(value.create_time ? { createTime: String(value.create_time) } : {}),
+      ...(value.success_time ? { successTime: String(value.success_time) } : {})
     }
   }
 

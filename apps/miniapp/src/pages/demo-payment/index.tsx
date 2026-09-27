@@ -26,7 +26,7 @@ export default function DemoPayment(): JSX.Element {
     setBusy(true)
     setMessage('')
     try {
-      const latest = await flow.purchaseDemo()
+      const latest = await flow.purchaseDemo(setPayment)
       setPayment(latest)
       await loadOrder(latest.businessOrderId)
       setMessage(latest.status === 'SUCCEEDED' ? '支付已由服务端确认' : '支付结果待确认，请稍后刷新')

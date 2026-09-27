@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Post } from '@nestjs/common'
+import { BadRequestException, Body, Controller, HttpCode, Post } from '@nestjs/common'
 import type { AuthTokens } from '@template/contracts'
 import { WechatAuthService } from './wechat-auth.service.js'
 import { SessionService } from './session.service.js'
@@ -14,6 +14,7 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @HttpCode(200)
   async refresh(@Body() body: { refreshToken?: string }): Promise<AuthTokens> {
     return this.sessions.refresh(body?.refreshToken ?? '')
   }

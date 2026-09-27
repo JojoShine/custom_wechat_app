@@ -3,6 +3,10 @@ import Taro from '@tarojs/taro'
 import { Button, Input, Text, View } from '@tarojs/components'
 import type { UserProfile } from '@template/contracts'
 import { apiRequest, logout } from '../../core/api/client'
+import { recoverProtectedError } from '../../core/navigation/recover'
+
+const profilePath = '/pages/profile/index'
+const redirectTo = (url: string) => Taro.redirectTo({ url })
 
 export default function Profile(): JSX.Element {
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -12,12 +16,8 @@ export default function Profile(): JSX.Element {
   useEffect(() => {
     void apiRequest<UserProfile>({ url: '/users/me', method: 'GET' })
       .then((user) => { setProfile(user); setNickname(user.nickname ?? '') })
-      .catch((error: unknown) => {
-        if (error instanceof Error && error.message === 'AUTH_REQUIRED') {
-          void Taro.redirectTo({ url: '/pages/login/index?returnTo=%2Fpages%2Fprofile%2Findex' })
-        } else {
-          setMessage('资料加载失败，请重试')
-        }
+      .catch(async (error: unknown) => {
+        if (!await recoverProtectedError(error, profilePath, redirectTo)) setMessage('资料加载失败，请重试')
       })
   }, [])
 
@@ -26,8 +26,8 @@ export default function Profile(): JSX.Element {
       const user = await apiRequest<UserProfile>({ url: '/users/me', method: 'PATCH', data: { nickname } })
       setProfile(user)
       setMessage('已保存')
-    } catch {
-      setMessage('保存失败，请重试')
+    } catch (error) {
+      if (!await recoverProtectedError(error, profilePath, redirectTo)) setMessage('保存失败，请重试')
     }
   }
 

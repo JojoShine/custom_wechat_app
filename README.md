@@ -9,7 +9,7 @@
 1. `pnpm install --frozen-lockfile`
 2. `docker compose up -d db`
 3. 复制 `apps/api/.env.example` 为 `apps/api/.env`，填入测试小程序的 `WECHAT_APP_ID`、`WECHAT_APP_SECRET` 和随机生成的 `JWT_SECRET`。本地数据库地址已与 Compose 对齐。
-4. `cd apps/api && pnpm prisma migrate deploy && pnpm prisma generate && pnpm build && node dist/main.js`
+4. `pnpm --filter @template/contracts build`，再执行 `cd apps/api && pnpm prisma migrate deploy && pnpm prisma generate && pnpm build && node --env-file=.env dist/main.js`。
 5. 复制 `apps/miniapp/.env.example` 为 `apps/miniapp/.env`，将 `TARO_APP_API_BASE_URL` 改为当前开发环境可访问的 API HTTPS 地址。
 6. `pnpm --filter @template/miniapp build:weapp`，在微信开发者工具中导入 `apps/miniapp`，构建产物位于 `apps/miniapp/dist`。
 

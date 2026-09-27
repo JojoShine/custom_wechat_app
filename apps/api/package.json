@@ -8,6 +8,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests",
     "test:db": "node scripts/check-user-unique.mjs",
+    "reconcile": "node scripts/reconcile-date.mjs",
     "prisma": "prisma"
   },
   "dependencies": {

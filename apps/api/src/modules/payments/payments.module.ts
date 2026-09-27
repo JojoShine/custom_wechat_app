@@ -8,6 +8,7 @@ import { NotificationController } from './notification.controller.js'
 import { PaymentEvents } from './payment-events.js'
 import { RefundService } from './refund.service.js'
 import { PaymentRecovery } from './payment-recovery.js'
+import { ReconciliationService } from './reconciliation.service.js'
 
 @Module({
   controllers: [PaymentController, NotificationController],
@@ -17,6 +18,7 @@ import { PaymentRecovery } from './payment-recovery.js'
     PaymentEvents,
     RefundService,
     PaymentRecovery,
+    ReconciliationService,
     { provide: WECHAT_PAY_CONFIG, useFactory: () => loadWechatPayConfig(process.env) },
     { provide: WECHAT_PAY_GATEWAY, useFactory: (config: WechatPayConfig) => new WechatPayGateway(config), inject: [WECHAT_PAY_CONFIG] }
   ],

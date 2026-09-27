@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core'
 import { AppModule } from '../app.module.js'
 
 describe('GET /health', () => {
+  beforeAll(() => { process.env.DATABASE_URL = 'postgresql://template:localdev@localhost:5433/template' })
   it('returns a ready response', async () => {
     const app = await NestFactory.create(AppModule, { logger: false })
     await app.listen(0)

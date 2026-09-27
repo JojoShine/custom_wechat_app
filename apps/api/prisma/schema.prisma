@@ -19,6 +19,7 @@ model User {
   sessions     RefreshSession[]
   uploads      UploadIntent[]
   payments     Payment[]
+  demoOrders   DemoPaymentOrder[]
 
   @@map("users")
 }
@@ -117,6 +118,26 @@ model PaymentEvent {
 
   @@index([deliveredAt, nextAttemptAt])
   @@map("payment_events")
+}
+
+enum DemoOrderStatus {
+  CREATED
+  PAID
+}
+
+model DemoPaymentOrder {
+  id          String          @id @default(uuid()) @db.Uuid
+  userId      String          @db.Uuid @map("user_id")
+  productName String          @map("product_name")
+  priceFen    Int             @map("price_fen")
+  status      DemoOrderStatus @default(CREATED)
+  paymentId   String?         @unique @db.Uuid @map("payment_id")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  user        User            @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("demo_payment_orders")
 }
 
 model ReconciliationRun {

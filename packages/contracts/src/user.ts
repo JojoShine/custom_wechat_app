@@ -3,4 +3,6 @@ export interface UserProfile {
   nickname: string | null
   avatarFileId: string | null
   avatarUrl: string | null
+  phoneBound: boolean
+  maskedPhone: string | null
 }

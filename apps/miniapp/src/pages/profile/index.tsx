@@ -5,6 +5,7 @@ import type { UserProfile } from '@template/contracts'
 import { apiRequest, logout } from '../../core/api/client'
 import { recoverProtectedError } from '../../core/navigation/recover'
 import { selectAndUploadImage, uploadAvatar } from '../../core/files/runtime'
+import { bindPhoneFromEvent } from '../../core/phone/bind'
 
 const profilePath = '/pages/profile/index'
 const redirectTo = (url: string) => Taro.redirectTo({ url })
@@ -49,6 +50,16 @@ export default function Profile(): JSX.Element {
     await Taro.redirectTo({ url: '/pages/portal/index' })
   }
 
+  async function bindPhone(code?: string): Promise<void> {
+    if (!code) { setMessage('未授权手机号'); return }
+    try {
+      const user = await bindPhoneFromEvent({ code }, apiRequest)
+      if (user) { setProfile(user); setMessage('手机号已绑定') }
+    } catch (error) {
+      if (!await recoverProtectedError(error, profilePath, redirectTo)) setMessage('手机号绑定失败，请重试')
+    }
+  }
+
   return <View style={{ padding: '32px' }}>
     <Text>个人资料</Text>
     {profile ? <View>
@@ -57,6 +68,8 @@ export default function Profile(): JSX.Element {
       <Button onClick={() => void saveAvatar(selectAndUploadImage)}>从相册选择头像</Button>
       <Input type='nickname' value={nickname} maxlength={80} placeholder='昵称' onInput={(event) => setNickname(event.detail.value)} />
       <Button onClick={() => void save()}>保存昵称</Button>
+      <Text>{profile.maskedPhone ?? '尚未绑定手机号'}</Text>
+      <Button openType='getPhoneNumber' onGetPhoneNumber={(event) => void bindPhone(event.detail.code)}>{profile.phoneBound ? '更换手机号' : '绑定手机号'}</Button>
       <Button onClick={() => void signOut()}>退出登录</Button>
     </View> : <Text>加载中</Text>}
     {message ? <Text>{message}</Text> : null}

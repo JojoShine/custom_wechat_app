@@ -10,7 +10,7 @@ describe('my profile', () => {
   })
 
   it('reads and changes only the signed-in user', async () => {
-    const users = new Map([['user-1', { id: 'user-1', nickname: null, avatarFileId: null }], ['user-2', { id: 'user-2', nickname: null, avatarFileId: null }]])
+    const users = new Map([['user-1', { id: 'user-1', nickname: null, avatarFileId: null, phoneNumber: null }], ['user-2', { id: 'user-2', nickname: null, avatarFileId: null, phoneNumber: null }]])
     const prisma = { user: {
       findUnique: vi.fn(async ({ where }: { where: { id: string } }) => users.get(where.id)),
       update: vi.fn(async ({ where, data }: { where: { id: string }; data: { nickname: string } }) => {
@@ -19,9 +19,9 @@ describe('my profile', () => {
         return user
       })
     } }
-    const controller = new UsersController(prisma as never, { readUrl: vi.fn() } as never)
-    expect(await controller.me({ userId: 'user-1' } as never)).toEqual({ id: 'user-1', nickname: null, avatarFileId: null, avatarUrl: null })
-    expect(await controller.updateMe({ userId: 'user-1' } as never, { nickname: '小明' })).toEqual({ id: 'user-1', nickname: '小明', avatarFileId: null, avatarUrl: null })
+    const controller = new UsersController(prisma as never, { readUrl: vi.fn() } as never, {} as never)
+    expect(await controller.me({ userId: 'user-1' } as never)).toEqual({ id: 'user-1', nickname: null, avatarFileId: null, avatarUrl: null, phoneBound: false, maskedPhone: null })
+    expect(await controller.updateMe({ userId: 'user-1' } as never, { nickname: '小明' })).toEqual({ id: 'user-1', nickname: '小明', avatarFileId: null, avatarUrl: null, phoneBound: false, maskedPhone: null })
     expect(users.get('user-2')?.nickname).toBeNull()
   })
 })

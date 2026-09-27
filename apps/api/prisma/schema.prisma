@@ -12,6 +12,8 @@ model User {
   wechatOpenId String           @unique @map("wechat_open_id")
   nickname     String?
   avatarFileId String?          @db.Uuid @map("avatar_file_id")
+  phoneCountryCode String?      @map("phone_country_code")
+  phoneNumber      String?      @map("phone_number")
   createdAt    DateTime         @default(now()) @map("created_at")
   updatedAt    DateTime         @updatedAt @map("updated_at")
   sessions     RefreshSession[]

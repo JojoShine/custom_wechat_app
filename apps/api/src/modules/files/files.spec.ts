@@ -66,4 +66,15 @@ describe('private image upload authorization', () => {
       }
     }
   })
+
+  it('refuses upload authorization when OSS credentials are missing', async () => {
+    const previous = process.env.OSS_ACCESS_KEY_SECRET
+    delete process.env.OSS_ACCESS_KEY_SECRET
+    try {
+      await expect(new OssProvider().signUpload({ key: 'users/u/file.jpg', contentType: 'image/jpeg', maxBytes: 123, expiresAt: new Date(Date.now() + 60_000) })).rejects.toThrow('OSS configuration is required')
+    } finally {
+      if (previous === undefined) delete process.env.OSS_ACCESS_KEY_SECRET
+      else process.env.OSS_ACCESS_KEY_SECRET = previous
+    }
+  })
 })

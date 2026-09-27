@@ -10,7 +10,7 @@ const extensions: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': '
 
 @Injectable()
 export class FilesService {
-  constructor(@Inject(PRISMA) private readonly prisma: PrismaClient, private readonly oss: OssProvider & OssGateway) {}
+  constructor(@Inject(PRISMA) private readonly prisma: PrismaClient, @Inject(OssProvider) private readonly oss: OssGateway) {}
 
   async authorize(userId: string, input: { contentType: string; size: number }): Promise<UploadAuthorization> {
     const extension = extensions[input.contentType]

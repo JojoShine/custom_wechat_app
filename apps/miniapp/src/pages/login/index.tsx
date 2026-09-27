@@ -3,6 +3,7 @@ import Taro, { useRouter } from '@tarojs/taro'
 import { Button, Text, View } from '@tarojs/components'
 import { loginWithWeChat } from '../../core/api/client'
 import { safeReturnTarget } from '../../core/navigation/guard'
+import { track } from '../../core/telemetry/runtime'
 
 export default function Login(): JSX.Element {
   const router = useRouter()
@@ -14,8 +15,10 @@ export default function Login(): JSX.Element {
     setError('')
     try {
       await loginWithWeChat()
+      track('action', 'auth.login', '/pages/login/index', 'success')
       await Taro.redirectTo({ url: safeReturnTarget(router.params.returnTo) })
     } catch {
+      track('action', 'auth.login', '/pages/login/index', 'failure')
       setError('登录失败，请重试')
     } finally {
       setBusy(false)

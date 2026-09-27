@@ -5,7 +5,7 @@ import { AppModule } from '../app.module.js'
 describe('GET /health', () => {
   beforeAll(() => { process.env.DATABASE_URL = 'postgresql://template:localdev@localhost:5433/template' })
   it('returns a ready response', async () => {
-    const app = await NestFactory.create(AppModule, { logger: false })
+    const app = await NestFactory.create(AppModule, { logger: false, abortOnError: false })
     await app.listen(0)
 
     try {
@@ -18,7 +18,7 @@ describe('GET /health', () => {
   })
 
   it('returns a stable error envelope for unknown routes', async () => {
-    const app = await NestFactory.create(AppModule, { logger: false })
+    const app = await NestFactory.create(AppModule, { logger: false, abortOnError: false })
     await app.listen(0)
 
     try {

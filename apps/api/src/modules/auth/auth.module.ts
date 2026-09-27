@@ -7,6 +7,7 @@ import { WechatIdentityProvider } from './wechat-identity.provider.js'
 
 @Module({
   controllers: [AuthController],
-  providers: [prismaProvider, SessionService, WechatAuthService, WechatIdentityProvider]
+  providers: [prismaProvider, SessionService, WechatAuthService, WechatIdentityProvider],
+  exports: [prismaProvider, SessionService]
 })
 export class AuthModule {}

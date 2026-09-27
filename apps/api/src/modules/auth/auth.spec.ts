@@ -32,7 +32,7 @@ describe('WeChat login', () => {
 
   function controller() {
     const service = new WechatAuthService({ exchangeCode } as never, prisma as never, new SessionService(prisma as never))
-    return new AuthController(service)
+    return new AuthController(service, new SessionService(prisma as never))
   }
 
   it('rejects an empty code with 400', async () => {

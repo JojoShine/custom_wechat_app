@@ -10,6 +10,7 @@ export default function Portal(): JSX.Element {
     <Text>门户页面</Text>
     <View style={{ marginTop: '24px' }}>
       <Button onClick={() => void navigateProtected('/pages/profile/index')}>个人资料</Button>
+      {process.env.TARO_APP_DEMO_PAYMENTS_ENABLED === 'true' ? <Button onClick={() => void navigateProtected('/pages/demo-payment/index')}>支付联调演示</Button> : null}
       <Button openType='share'>分享门户</Button>
     </View>
   </View>

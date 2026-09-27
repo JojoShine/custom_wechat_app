@@ -25,3 +25,17 @@ export interface PaymentLaunchParams {
   signType: 'RSA'
   paySign: string
 }
+
+export interface DemoOrderView {
+  id: string
+  productName: string
+  priceFen: number
+  status: 'CREATED' | 'PAID'
+  paymentId: string | null
+}
+
+export interface DemoPurchaseResult {
+  order: DemoOrderView
+  payment: PaymentView
+  launch: PaymentLaunchParams
+}

@@ -1,5 +1,5 @@
 const PORTAL = '/pages/portal/index'
-const allowedPaths = new Set([PORTAL, '/pages/profile/index'])
+const allowedPaths = new Set([PORTAL, '/pages/profile/index', ...(process.env.TARO_APP_DEMO_PAYMENTS_ENABLED === 'true' ? ['/pages/demo-payment/index'] : [])])
 
 export function safeReturnTarget(value?: string): string {
   if (!value) return PORTAL

@@ -6,6 +6,7 @@ import { PaymentService, WECHAT_PAY_CONFIG, WECHAT_PAY_GATEWAY } from './payment
 import { WechatPayGateway } from './wechat-pay.gateway.js'
 import { NotificationController } from './notification.controller.js'
 import { PaymentEvents } from './payment-events.js'
+import { RefundService } from './refund.service.js'
 
 @Module({
   controllers: [PaymentController, NotificationController],
@@ -13,9 +14,10 @@ import { PaymentEvents } from './payment-events.js'
     prismaProvider,
     PaymentService,
     PaymentEvents,
+    RefundService,
     { provide: WECHAT_PAY_CONFIG, useFactory: () => loadWechatPayConfig(process.env) },
     { provide: WECHAT_PAY_GATEWAY, useFactory: (config: WechatPayConfig) => new WechatPayGateway(config), inject: [WECHAT_PAY_CONFIG] }
   ],
-  exports: [PaymentService, PaymentEvents, WECHAT_PAY_GATEWAY, WECHAT_PAY_CONFIG]
+  exports: [PaymentService, RefundService, PaymentEvents, WECHAT_PAY_GATEWAY, WECHAT_PAY_CONFIG]
 })
 export class PaymentsModule {}

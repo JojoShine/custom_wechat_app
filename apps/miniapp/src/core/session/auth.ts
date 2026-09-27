@@ -40,7 +40,10 @@ export function createSessionClient(deps: SessionDependencies) {
     if (!pendingRefresh) {
       pendingRefresh = (async () => {
         const { refreshToken } = await deps.storage.read()
-        if (!refreshToken) return false
+        if (!refreshToken) {
+          await deps.storage.clear()
+          return false
+        }
         try {
           const result = await send<AuthTokens>({ url: '/auth/refresh', method: 'POST', data: { refreshToken } })
           if (result.statusCode !== 200) throw new Error('Refresh rejected')

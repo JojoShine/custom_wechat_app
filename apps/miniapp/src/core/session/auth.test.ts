@@ -54,4 +54,11 @@ describe('miniapp session client', () => {
     expect(state).toEqual({})
     expect(storage.clear).toHaveBeenCalledTimes(1)
   })
+
+  it('clears a stale access token when no refresh token exists', async () => {
+    state.accessToken = 'old'
+    request.mockResolvedValueOnce({ statusCode: 401, data: {} })
+    await expect(client().apiRequest({ url: '/users/me' })).rejects.toThrow('AUTH_REQUIRED')
+    expect(state).toEqual({})
+  })
 })

@@ -5,7 +5,8 @@
   "scripts": {
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
-    "test": "node scripts/check-workspace.mjs && pnpm -r test"
+    "test": "node scripts/check-workspace.mjs && pnpm -r test",
+    "test:container": "node scripts/test-container.mjs"
   },
   "devDependencies": {
     "typescript": "5.4.5"

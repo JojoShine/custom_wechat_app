@@ -5,7 +5,7 @@ import { loadConfig } from './common/config/app-config.js'
 
 async function bootstrap(): Promise<void> {
   loadConfig(process.env)
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create(AppModule, { rawBody: true })
   await app.listen(process.env.PORT ?? 3000)
 }
 

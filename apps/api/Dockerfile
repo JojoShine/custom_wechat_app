@@ -1,4 +1,7 @@
-FROM node:22-bookworm-slim AS build
+FROM node:22-bookworm-slim AS base
+RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
+
+FROM base AS build
 WORKDIR /workspace
 RUN corepack enable && corepack prepare pnpm@8.9.2 --activate
 
@@ -14,7 +17,7 @@ RUN pnpm --filter @template/api prisma generate \
  && pnpm --filter @template/api build \
  && pnpm --filter @template/api deploy --prod /prod/api
 
-FROM node:22-bookworm-slim
+FROM base
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /prod/api ./

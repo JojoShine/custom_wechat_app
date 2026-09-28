@@ -26,7 +26,7 @@ it('requires login for file routes and passes the signed-in user to service', as
     expect(denied.status).toBe(401)
     expect(authorize).not.toHaveBeenCalled()
 
-    const token = await new SignJWT({}).setProtectedHeader({ alg: 'HS256' }).setSubject('user-1').setExpirationTime('15m').sign(new TextEncoder().encode(process.env.JWT_SECRET))
+    const token = await new SignJWT({ token_use: 'miniapp' }).setProtectedHeader({ alg: 'HS256' }).setSubject('user-1').setExpirationTime('15m').sign(new TextEncoder().encode(process.env.JWT_SECRET))
     const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
     const accepted = await fetch(`${base}/files/uploads`, { method: 'POST', headers, body: JSON.stringify({ contentType: 'image/jpeg', size: 123 }) })
     expect(accepted.status).toBe(201)

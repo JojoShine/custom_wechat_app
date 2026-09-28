@@ -21,7 +21,7 @@ it('requires login and rejects client-selected prices and refund amounts', async
   try {
     const base = await app.getUrl()
     expect((await fetch(`${base}/demo/payments/orders`, { method: 'POST' })).status).toBe(401)
-    const token = await new SignJWT({}).setProtectedHeader({ alg: 'HS256' }).setSubject('owner').setExpirationTime('15m').sign(new TextEncoder().encode(process.env.JWT_SECRET))
+    const token = await new SignJWT({ token_use: 'miniapp' }).setProtectedHeader({ alg: 'HS256' }).setSubject('owner').setExpirationTime('15m').sign(new TextEncoder().encode(process.env.JWT_SECRET))
     const headers = { Authorization: `Bearer ${token}`, 'content-type': 'application/json' }
     expect((await fetch(`${base}/demo/payments/orders`, { method: 'POST', headers, body: JSON.stringify({ amountFen: 1 }) })).status).toBe(400)
     expect(createOrder).not.toHaveBeenCalled()

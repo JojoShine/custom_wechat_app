@@ -14,7 +14,7 @@ export class AccessGuard implements CanActivate {
     if (!token || !process.env.JWT_SECRET) throw new UnauthorizedException('Access token required')
     try {
       const { payload } = await jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET), { algorithms: ['HS256'] })
-      if (!payload.sub) throw new Error('Missing subject')
+      if (!payload.sub || payload.token_use !== 'miniapp' || payload.aud) throw new Error('Invalid native token')
       request.userId = payload.sub
       return true
     } catch {

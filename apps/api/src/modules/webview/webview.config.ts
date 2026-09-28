@@ -5,6 +5,8 @@ export interface WebviewAppConfig {
   origin: string
 }
 
+export const WEBVIEW_APPS = Symbol('WEBVIEW_APPS')
+
 export function loadWebviewApps(env: NodeJS.ProcessEnv): WebviewAppConfig[] {
   if (!env.WEBVIEW_APPS_JSON?.trim()) return []
   const parsed: unknown = JSON.parse(env.WEBVIEW_APPS_JSON)

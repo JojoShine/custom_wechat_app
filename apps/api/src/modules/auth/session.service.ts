@@ -19,7 +19,7 @@ export class SessionService {
   async issue(userId: string, client: PrismaClient | Prisma.TransactionClient = this.prisma): Promise<AuthTokens> {
     const secret = process.env.JWT_SECRET
     if (!secret) throw new Error('JWT_SECRET is required')
-    const accessToken = await new SignJWT({})
+    const accessToken = await new SignJWT({ token_use: 'miniapp' })
       .setProtectedHeader({ alg: 'HS256' })
       .setSubject(userId)
       .setIssuedAt()

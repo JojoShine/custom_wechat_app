@@ -20,7 +20,7 @@ it('requires login before accepting telemetry', async () => {
     const denied = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(event) })
     expect(denied.status).toBe(401)
     expect(info).not.toHaveBeenCalled()
-    const token = await new SignJWT({}).setProtectedHeader({ alg: 'HS256' }).setSubject('user-1').setExpirationTime('15m').sign(new TextEncoder().encode(process.env.JWT_SECRET))
+    const token = await new SignJWT({ token_use: 'miniapp' }).setProtectedHeader({ alg: 'HS256' }).setSubject('user-1').setExpirationTime('15m').sign(new TextEncoder().encode(process.env.JWT_SECRET))
     const accepted = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(event) })
     expect(accepted.status).toBe(201)
     expect(info).toHaveBeenCalledWith(expect.objectContaining({ userId: 'user-1' }))

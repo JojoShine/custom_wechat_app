@@ -1,7 +1,7 @@
 import { Button, Text, View } from '@tarojs/components'
 import Taro, { useShareAppMessage } from '@tarojs/taro'
 import { navigateProtected } from '../../core/navigation'
-import { CAPABILITIES_PATH, DEMO_PAYMENT_PATH, PORTAL_PATH, PROFILE_PATH } from '../../core/navigation/routes'
+import { CAPABILITIES_PATH, DEMO_PAYMENT_PATH, PORTAL_PATH, PROFILE_PATH, WEBVIEW_APPS_PATH } from '../../core/navigation/routes'
 import { portalShare } from '../../core/share/portal'
 import { track } from '../../core/telemetry/runtime'
 import './index.css'
@@ -39,6 +39,15 @@ export default function Portal(): JSX.Element {
           <Text className='portal-login-subtitle'>账号与资料</Text>
         </View>
         <Text className='portal-arrow portal-login-arrow'>›</Text>
+      </Button>
+
+      <Button className='portal-center-card' style={{ background: '#d7f1e7' }} onClick={() => void Taro.navigateTo({ url: WEBVIEW_APPS_PATH })}>
+        <View className='portal-center-copy'>
+          <Text className='portal-center-kicker'>WEB / ACCESS</Text>
+          <Text className='portal-center-title'>网页应用</Text>
+          <Text className='portal-center-subtitle'>票据登录 · 位置传递</Text>
+        </View>
+        <Text className='portal-center-arrow'>→</Text>
       </Button>
 
       <View className='portal-grid'>

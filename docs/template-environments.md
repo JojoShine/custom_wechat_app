@@ -16,7 +16,7 @@
 | `OSS_ENDPOINT` | 对应 Bucket 的 HTTPS 主机地址，须与 Bucket/地域匹配 | 非密钥 |
 | `OSS_ACCESS_KEY_ID` | 授权该 Bucket `users/*` 前缀的 RAM 身份标识 | 敏感标识符，服务端保存 |
 | `OSS_ACCESS_KEY_SECRET` | 对应 RAM 凭证，用于签发上传与短期读取地址 | **密钥** |
-| `WECHAT_PAY_MCH_ID` | 普通直连商户号；填写后启用支付模块 | 标识符 |
+| `WECHAT_PAY_MCH_ID` | 普通直连商户号；示例留空以保持支付模块关闭，准备联调且配齐全部支付参数后再填写 | 标识符 |
 | `WECHAT_PAY_MERCHANT_SERIAL` | 与商户私钥配套的商户 API 证书序列号 | 标识符 |
 | `WECHAT_PAY_MERCHANT_PRIVATE_KEY` | 商户请求和小程序调起支付参数的签名私钥，PEM 换行可写 `\n` | **密钥** |
 | `WECHAT_PAY_API_V3_KEY` | 32 字节 API v3 密钥，用于解密支付与退款通知 | **密钥** |
@@ -46,6 +46,6 @@
 
 ## 环境与验收边界
 
-本地开发使用 `compose.yaml` 的 PostgreSQL；自动测试复用现有单个测试库，不为复制演练另建库。测试和生产环境分别配置小程序 AppID、API 服务、数据库、私有 Bucket、RAM 身份及普通直连商户参数，不共用密钥。
+本地开发使用 `compose.yaml` 的 PostgreSQL；自动测试通过临时环境变量 `TEST_DATABASE_URL` 指向已执行 Prisma 迁移的现有单个测试库，不为复制演练另建库。该变量仅供测试运行，不写入两份应用 `.env.example`。测试和生产环境分别配置小程序 AppID、API 服务、数据库、私有 Bucket、RAM 身份及普通直连商户参数，不共用密钥。
 
-本地 `pnpm test`、`pnpm typecheck`、`pnpm build` 和 `pnpm test:container` 验证仓库行为、构建与容器健康；受控外部响应测试不能证明真实微信或 OSS 已联通。真实联调需另外验证微信登录、头像直传与短期读取、手机号授权、支付/退款通知和次日账单。第四阶段交付后会向项目负责人提供逐项参数清单，再按实际具备的配置安排联调。
+本地 `TEST_DATABASE_URL=postgresql://template:localdev@localhost:5433/template_payment_dev pnpm test`、`pnpm typecheck`、`pnpm build` 和 `pnpm test:container` 验证仓库行为、构建与容器健康；受控外部响应测试不能证明真实微信或 OSS 已联通。真实联调需另外验证微信登录、头像直传与短期读取、手机号授权、支付/退款通知和次日账单。第四阶段交付后会向项目负责人提供逐项参数清单，再按实际具备的配置安排联调。

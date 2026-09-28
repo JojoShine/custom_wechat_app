@@ -6,11 +6,13 @@
 
 1. 在团队代码平台从本仓库创建独立仓库，确认新仓库的远端地址和访问权限。不要复制本地 `.env`、构建产物或开发数据库数据。
 2. 修改根目录 `package.json` 的项目名称、`apps/miniapp/config/index.ts` 的 `projectName`、`apps/miniapp/src/app.config.ts` 与页面配置中的展示文案，以及分享标题 `apps/miniapp/src/core/share/portal.ts`。在微信开发者工具中选择新场景的小程序 AppID，并将同一个值配置为 API 的 `WECHAT_APP_ID`；不要写入页面源码。
-3. `@template/api`、`@template/miniapp`、`@template/contracts` 可暂时保留，它们是工作区内部包名。若要改名，需同步调整三个 `package.json`、workspace 依赖、根目录及 API 的脚本、`apps/api/Dockerfile`、`scripts/check-workspace.mjs`，随后用 pnpm 重新生成 `pnpm-lock.yaml` 并执行整仓检查；不要只改根目录的名称。
+3. `@template/api`、`@template/miniapp`、`@template/contracts` 可暂时保留，它们是工作区内部包名。若要改名，需同步调整三个 `package.json`、两个应用源码及测试里对 `@template/contracts` 的 import、根目录和 `apps/api/scripts` 中的命令、`apps/api/Dockerfile`、`scripts/check-workspace.mjs` 以及本指引和 README。先运行 `rg -n '@template/' apps packages scripts README.md docs/template-copy-guide.md` 找齐引用，修改后用 pnpm 重新生成 `pnpm-lock.yaml` 并执行整仓检查；不要只改根目录的名称。
 
 ## 2. 本地运行与环境
 
 先执行 `source "$HOME/.nvm/nvm.sh" && nvm use 22.23.2`，并使用仓库指定的 pnpm 8.9.2。环境变量分别填写在 `apps/api/.env` 和 `apps/miniapp/.env`；两者均由各自的 `.env.example` 复制，不提交实际值。以下命令默认在仓库根目录运行，明确写出“在 `apps/api`”的除外。各变量的作用见[模板环境配置](template-environments.md)。
+
+暂不联调支付时保持 `WECHAT_PAY_MCH_ID` 为空，API 才不会加载支付模块；其余支付字段的占位值不能用于真实交易。准备联调时再一次配齐全部 `WECHAT_PAY_*`。
 
 1. `pnpm install --frozen-lockfile`。
 2. `docker compose up -d db`，启动本地 PostgreSQL。开发中间件使用本地 Docker；复制品应使用自己的数据库和卷。
@@ -19,6 +21,8 @@
 5. `pnpm --filter @template/miniapp build:weapp`，将 `apps/miniapp` 导入微信开发者工具。真机访问的 `TARO_APP_API_BASE_URL` 必须是可访问的 HTTPS API 地址。
 
 本地只有一个 PostgreSQL 测试数据库用于自动测试，不需要为复制演练另建数据库。真实微信、OSS 和支付能力必须在各自测试环境配置后另行联调；本地受控测试通过不代表外部链路已通过。
+
+整仓测试需显式指定已完成迁移的数据库：先在 `apps/api` 用目标库的 `DATABASE_URL` 执行 `pnpm prisma migrate deploy`，再在仓库根目录运行 `TEST_DATABASE_URL=postgresql://template:localdev@localhost:5433/template_payment_dev pnpm test`（这里展示当前项目已有的本地测试库地址；复制品改为自己的单个本地测试库）。根目录 `pnpm test` 在未设置 `TEST_DATABASE_URL` 时会明确失败，避免数据库测试被静默跳过。验收输出应显示 API 100 项、小程序 26 项，且没有跳过数据库测试；新增测试后以实际总数为准。
 
 ## 3. 替换门户并增加业务页面
 
@@ -48,7 +52,7 @@
 
 ## 6. 提交前检查
 
-- `pnpm test`、`pnpm typecheck`、`pnpm build` 均通过；需要验证 API 镜像时运行 `pnpm test:container`。
+- 用上述 `TEST_DATABASE_URL` 运行 `pnpm test`，并确认 `pnpm typecheck`、`pnpm build` 均通过；需要验证 API 镜像时运行 `pnpm test:container`。
 - 默认构建没有演示入口；仅在明确开启时执行 `TARO_APP_DEMO_PAYMENTS_ENABLED=true pnpm --filter @template/miniapp build:weapp`。
 - 小程序合法域名、支付与退款回调、OSS 私有 Bucket 和 RAM 权限按[模板环境配置](template-environments.md)核对。真实凭证和真实支付流程尚需单独验收。
 - `git status` 不应包含 `.env`、商户私钥、OSS AccessKey、数据库数据或小程序构建产物。

@@ -1,5 +1,5 @@
 import { Button, Text, View } from '@tarojs/components'
-import { useShareAppMessage } from '@tarojs/taro'
+import Taro, { useShareAppMessage } from '@tarojs/taro'
 import { navigateProtected } from '../../core/navigation'
 import { DEMO_PAYMENT_PATH, PORTAL_PATH, PROFILE_PATH } from '../../core/navigation/routes'
 import { portalShare } from '../../core/share/portal'
@@ -9,6 +9,8 @@ import './index.css'
 const paymentEnabled = process.env.TARO_APP_DEMO_PAYMENTS_ENABLED === 'true'
 
 export default function Portal(): JSX.Element {
+  const statusBarHeight = Taro.getWindowInfo().statusBarHeight
+
   useShareAppMessage(() => {
     track('event', 'portal.share', PORTAL_PATH, 'success')
     return portalShare()
@@ -16,7 +18,7 @@ export default function Portal(): JSX.Element {
 
   const openProfile = () => void navigateProtected(PROFILE_PATH)
 
-  return <View className='portal'>
+  return <View className='portal' style={{ paddingTop: `${statusBarHeight}px` }}>
     <View className='portal-content'>
       <View className='portal-header'>
         <Text className='portal-brand-star'>★</Text>
@@ -55,7 +57,7 @@ export default function Portal(): JSX.Element {
           <Text className='portal-capability-name'>分享好友</Text>
           <Text className='portal-arrow'>›</Text>
         </Button>
-        <Button className={`portal-capability${paymentEnabled ? '' : ' portal-capability-disabled'}`} disabled={!paymentEnabled} onClick={paymentEnabled ? () => void navigateProtected(DEMO_PAYMENT_PATH) : undefined}>
+        <Button className={`portal-capability${paymentEnabled ? '' : ' portal-capability-disabled'}`} onClick={paymentEnabled ? () => void navigateProtected(DEMO_PAYMENT_PATH) : undefined}>
           <View className='portal-icon portal-icon-wallet' />
           <Text className='portal-capability-name'>支付与退款</Text>
           {paymentEnabled ? <Text className='portal-arrow'>›</Text> : <Text className='portal-pending'>待开通</Text>}

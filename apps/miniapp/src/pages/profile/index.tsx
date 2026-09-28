@@ -8,6 +8,7 @@ import { selectAndUploadImage, uploadAvatar } from '../../core/files/runtime'
 import { bindPhoneFromEvent } from '../../core/phone/bind'
 import { track } from '../../core/telemetry/runtime'
 import { PORTAL_PATH, PROFILE_PATH } from '../../core/navigation/routes'
+import './index.css'
 
 const profilePath = PROFILE_PATH
 const redirectTo = (url: string) => Taro.redirectTo({ url })
@@ -67,18 +68,18 @@ export default function Profile(): JSX.Element {
     }
   }
 
-  return <View style={{ padding: '32px' }}>
-    <Text>个人资料</Text>
-    {profile ? <View>
-      {profile.avatarUrl ? <Image src={profile.avatarUrl} mode='aspectFill' style={{ width: '96px', height: '96px' }} /> : null}
-      <Button openType='chooseAvatar' onChooseAvatar={(event) => void saveAvatar(() => uploadAvatar(event.detail.avatarUrl))}>选择微信头像</Button>
-      <Button onClick={() => void saveAvatar(selectAndUploadImage)}>从相册选择头像</Button>
-      <Input type='nickname' value={nickname} maxlength={80} placeholder='昵称' onInput={(event) => setNickname(event.detail.value)} />
-      <Button onClick={() => void save()}>保存昵称</Button>
-      <Text>{profile.maskedPhone ?? '尚未绑定手机号'}</Text>
-      <Button openType='getPhoneNumber' onGetPhoneNumber={(event) => void bindPhone(event.detail.code)}>{profile.phoneBound ? '更换手机号' : '绑定手机号'}</Button>
-      <Button onClick={() => void signOut()}>退出登录</Button>
+  return <View className='profile'>
+    <Text className='profile-title'>个人资料</Text>
+    {profile ? <View className='profile-panel'>
+      {profile.avatarUrl ? <Image className='profile-avatar' src={profile.avatarUrl} mode='aspectFill' /> : null}
+      <Button className='profile-action' openType='chooseAvatar' onChooseAvatar={(event) => void saveAvatar(() => uploadAvatar(event.detail.avatarUrl))}>选择微信头像</Button>
+      <Button className='profile-action' onClick={() => void saveAvatar(selectAndUploadImage)}>从相册选择头像</Button>
+      <Input className='profile-input' type='nickname' value={nickname} maxlength={80} placeholder='昵称' onInput={(event) => setNickname(event.detail.value)} />
+      <Button className='profile-action profile-action-primary' onClick={() => void save()}>保存昵称</Button>
+      <Text className='profile-phone'>{profile.maskedPhone ?? '尚未绑定手机号'}</Text>
+      <Button className='profile-action' openType='getPhoneNumber' onGetPhoneNumber={(event) => void bindPhone(event.detail.code)}>{profile.phoneBound ? '更换手机号' : '绑定手机号'}</Button>
+      <Button className='profile-action profile-action-quiet' onClick={() => void signOut()}>退出登录</Button>
     </View> : <Text>加载中</Text>}
-    {message ? <Text>{message}</Text> : null}
+    {message ? <Text className='profile-message'>{message}</Text> : null}
   </View>
 }

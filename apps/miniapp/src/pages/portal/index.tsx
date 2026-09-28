@@ -1,7 +1,7 @@
 import { Button, Text, View } from '@tarojs/components'
 import Taro, { useShareAppMessage } from '@tarojs/taro'
 import { navigateProtected } from '../../core/navigation'
-import { DEMO_PAYMENT_PATH, PORTAL_PATH, PROFILE_PATH } from '../../core/navigation/routes'
+import { CAPABILITIES_PATH, DEMO_PAYMENT_PATH, PORTAL_PATH, PROFILE_PATH } from '../../core/navigation/routes'
 import { portalShare } from '../../core/share/portal'
 import { track } from '../../core/telemetry/runtime'
 import './index.css'
@@ -63,6 +63,15 @@ export default function Portal(): JSX.Element {
           {paymentEnabled ? <Text className='portal-arrow'>›</Text> : <Text className='portal-pending'>待开通</Text>}
         </Button>
       </View>
+
+      <Button className='portal-center-card' onClick={() => void Taro.navigateTo({ url: CAPABILITIES_PATH })}>
+        <View className='portal-center-copy'>
+          <Text className='portal-center-kicker'>EXPLORE / 01</Text>
+          <Text className='portal-center-title'>能力中心</Text>
+          <Text className='portal-center-subtitle'>位置 · 扫码 · 媒体 · 设备</Text>
+        </View>
+        <Text className='portal-center-arrow'>→</Text>
+      </Button>
 
       <View className='portal-footer-scene'>
         <Text>按场景替换门户，能力即插即用</Text>

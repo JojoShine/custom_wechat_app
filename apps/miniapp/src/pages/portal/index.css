@@ -23,6 +23,13 @@
 .portal-capability-name { margin-top: 2rpx; font-size: 34rpx; font-weight: 800; white-space: nowrap; }
 .portal-capability .portal-arrow { position: absolute; top: 70rpx; right: 24rpx; }
 .portal-capability-disabled { opacity: 1; color: #163d34; }
+.portal-center-card { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 156rpx; margin-top: 28rpx; padding: 18rpx 30rpx; border: 4rpx solid #164b3c; border-radius: 8rpx; background: #ffdc88; box-shadow: 8rpx 8rpx 0 #d9d3bd; color: #163d34; text-align: left; }
+.portal-center-card::after { border: 0; }
+.portal-center-copy { display: flex; flex-direction: column; }
+.portal-center-kicker { font-size: 20rpx; font-weight: 800; letter-spacing: 3rpx; }
+.portal-center-title { margin-top: 5rpx; font-size: 42rpx; font-weight: 900; }
+.portal-center-subtitle { margin-top: 2rpx; font-size: 24rpx; font-weight: 700; }
+.portal-center-arrow { font-size: 56rpx; font-weight: 900; }
 .portal-pending { position: absolute; right: 16rpx; bottom: 16rpx; padding: 8rpx 12rpx; border-radius: 10rpx; background: #e4e2da; color: #657070; font-size: 22rpx; line-height: 1; }
 .portal-footer-scene { display: flex; flex-direction: column; align-items: center; height: 140rpx; margin-top: 28rpx; padding-top: 36rpx; box-sizing: border-box; background: #c5e9ed url('../../assets/portal/footer.jpg') center center / cover no-repeat; font-size: 26rpx; font-weight: 800; letter-spacing: 2rpx; text-align: center; }
 .portal-footer-scene .portal-accent-line { margin-top: 12rpx; }

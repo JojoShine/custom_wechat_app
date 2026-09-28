@@ -1,0 +1,16 @@
+.cap-page { min-height: 100vh; box-sizing: border-box; padding: 32rpx 28rpx 100rpx; background: #f8f5e9; color: #163d34; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; }
+.cap-header { display: flex; flex-direction: column; padding: 32rpx 30rpx 38rpx; border: 4rpx solid #164b3c; background: #b9e6f3; box-shadow: 8rpx 8rpx 0 #d9d3bd; }
+.cap-kicker { color: #175945; font-size: 22rpx; font-weight: 800; letter-spacing: 3rpx; }
+.cap-title { margin-top: 10rpx; font-size: 58rpx; font-weight: 900; letter-spacing: 3rpx; }
+.cap-subtitle { margin-top: 8rpx; font-size: 26rpx; font-weight: 700; }
+.cap-section { margin-top: 30rpx; padding: 26rpx; border: 4rpx solid #164b3c; border-radius: 8rpx; background: #fffbef; box-shadow: 8rpx 8rpx 0 #d9d3bd; }
+.cap-heading { display: block; font-size: 36rpx; font-weight: 900; }
+.cap-intro { display: block; margin-top: 10rpx; color: #5c7167; font-size: 25rpx; line-height: 1.5; }
+.cap-actions { display: flex; flex-wrap: wrap; gap: 14rpx; margin-top: 20rpx; }
+.cap-button { display: flex; align-items: center; justify-content: center; min-height: 76rpx; margin: 18rpx 0 0; padding: 0 20rpx; border: 4rpx solid #164b3c; border-radius: 6rpx; background: #fff7dc; box-shadow: 5rpx 5rpx 0 #d9d3bd; color: #163d34; font-size: 26rpx; font-weight: 800; line-height: 1.2; }
+.cap-button::after { border: 0; }
+.cap-button[disabled] { opacity: .55; }
+.cap-primary { background: #175945; box-shadow: 5rpx 5rpx 0 #123b33; color: #fffef2; }
+.cap-status { display: block; margin-top: 24rpx; font-size: 25rpx; font-weight: 700; }
+.cap-result { display: flex; flex-direction: column; gap: 7rpx; overflow-wrap: anywhere; margin-top: 18rpx; padding: 20rpx; border: 2rpx dashed #164b3c; background: #ecf5e7; font-size: 25rpx; line-height: 1.5; }
+.cap-input { height: 78rpx; margin-top: 20rpx; padding: 0 18rpx; border: 4rpx solid #164b3c; background: #fffef6; font-size: 27rpx; }

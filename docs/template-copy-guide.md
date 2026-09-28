@@ -30,6 +30,7 @@
 - 在 `apps/miniapp/src/core/navigation/routes.ts` 登记新页面路径，将其加入 `enabledPages`，并按是否需要登录决定是否加入 `apps/miniapp/src/core/navigation/guard.ts` 的允许路径。登录回跳只接受登记的受保护路径，未知路径回门户。
 - 在 `apps/miniapp/src/core/share/portal.ts` 调整场景分享标题和目标页。资料页 `apps/miniapp/src/pages/profile/index.tsx` 展示昵称、头像直传、手机号授权和退出登录；可按业务界面重做，但继续调用 `core` 中的能力入口。
 - 小程序调用 API 使用 `apps/miniapp/src/core/api/client.ts` 的 `apiRequest`。业务页面负责自己的状态和交互；平台 `core` 不保存业务商品或订单数据。
+- 原生位置、扫码、媒体、剪贴板及设备网络能力位于 `apps/miniapp/src/core/native`；`pages/capabilities` 是可删除的演示页。按场景取用模块，并参照[原生能力目录](native-capability-catalog.md)核对隐私权限、硬件条件和真机检查。若不使用位置，删除 `app.config.ts` 中的位置权限声明；若使用，改写用途说明并配置微信隐私声明。
 
 ## 4. 新增业务模块并接入支付
 

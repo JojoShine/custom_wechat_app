@@ -17,6 +17,19 @@
 
 真机不能使用 `localhost`。微信、OSS 的 AccessKey 只配置在 API 端；小程序只接收本项目的访问令牌、刷新令牌以及有时限的上传授权和读取地址。开发环境中间件使用 `compose.yaml` 的本地账号。
 
+### 本地 Docker 与开发者工具联调
+
+微信开发者工具模拟器可以访问本机 API，不需要先部署公网地址。先按上文准备 `apps/api/.env` 并在现有本地数据库执行迁移，然后在仓库根目录运行：
+
+```bash
+docker build -f apps/api/Dockerfile -t wechat-template-api:local-dev .
+docker run --rm -p 127.0.0.1:3100:3000 --env-file apps/api/.env \
+  -e DATABASE_URL=postgresql://template:localdev@host.docker.internal:5433/template \
+  wechat-template-api:local-dev
+```
+
+确认 `http://127.0.0.1:3100/health` 返回 `{"status":"ok"}`。在 `apps/miniapp/.env` 设置 `TARO_APP_API_BASE_URL=http://127.0.0.1:3100`，执行 `pnpm --filter @template/miniapp build:weapp`，再将 `apps/miniapp/dist` 导入微信开发者工具，选择与 API 一致的 AppID 和“不使用云服务”。仅在该本地调试项目中关闭合法域名校验，便可从模拟器测试登录、资料和 OSS 图片流程。真机调试、预览及上线仍需可访问的 HTTPS API 和已登记的合法域名。
+
 ## 私有图片联调
 
 1. 创建**私有 Bucket**，`OSS_REGION`、`OSS_BUCKET` 和 HTTPS `OSS_ENDPOINT` 必须指向同一存储空间。上传对象沿用私有权限，不要设置公开读取的对象 ACL。
@@ -69,7 +82,7 @@ API 启动后每分钟补查待定或到期支付、待定退款并重投业务�
 
 部署前在与目标 PostgreSQL 可连接的环境执行 `cd apps/api && pnpm prisma migrate deploy`。镜像只运行 API，不在每次启动时自动迁移数据库。生产环境通过容器环境变量注入 `DATABASE_URL`、`JWT_SECRET`、`WECHAT_APP_ID`、`WECHAT_APP_SECRET`、`OSS_*` 及启用支付时所需的 `WECHAT_PAY_*`；不要提交真实密钥。
 
-**真实联调状态：未执行。** 仓库没有测试平台的微信 AppID/Secret、手机号权限或 OSS 凭证，自动测试通过替身 provider 验证签名策略、授权边界和交换流程；编译、数据库迁移与容器健康检查属于本地验证。上线前需在真实微信和 OSS 测试环境复核登录、上传、HEAD、私有读取、手机号授权和分享。
+**联调边界：**本地开发者工具模拟器配合 Docker API 可验证微信登录、资料更新和 OSS 图片流程；构建与自动测试仍使用不含真实密钥的配置。手机号授权、真机访问、支付退款和线上回调需要各自的权限、域名及商户配置后单独验收。
 
 ## 复制新场景
 

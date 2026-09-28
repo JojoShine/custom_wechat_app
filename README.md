@@ -4,6 +4,8 @@
 
 小程序首页另有像素风“能力中心”，演示一次定位、地图选点与打开位置、扫码、本地媒体选择与预览、剪贴板、设备摘要及网络状态。模块可供复制项目直接导入；更多微信能力及接入条件见[原生能力目录](docs/native-capability-catalog.md)。
 
+能力中心也提供“网页应用”入口：已登录用户通过一次性 ticket 进入服务端登记的 WebView 网页，网页兑换专用 JWT 后读取有限资料，并可按用户选择接收坐标。配置、接口和本地示例见[WebView 接入说明](docs/webview-integration.md)。
+
 ## 本地启动
 
 环境变量的用途、敏感性及域名要求见[模板环境配置](docs/template-environments.md)。
@@ -78,7 +80,7 @@ API 启动后每分钟补查待定或到期支付、待定退款并重投业务�
 
 第四阶段在隔离工作树按[复制指引](docs/template-copy-guide.md)演练：使用 nvm Node 22.23.2 和现有单个本地测试数据库，锁文件安装、`pnpm test`（API 100 项、小程序 26 项）、`pnpm typecheck`、`pnpm build`、演示开关启用构建、`pnpm test:container` 均通过；Prisma 的 7 个迁移为最新状态。默认小程序产物不含支付演示页，启用构建包含该页。此验收不代表微信或 OSS 真实环境已联通。
 
-- `TEST_DATABASE_URL=postgresql://template:localdev@localhost:5433/template_payment_dev pnpm test`、`pnpm typecheck`、`pnpm build`：仓库检查；测试 URL 指向已有且完成迁移的本地测试库，缺少它时整仓测试会直接失败。
+- `TEST_DATABASE_URL=postgresql://template:localdev@localhost:5433/template pnpm test`、`pnpm typecheck`、`pnpm build`：仓库检查；测试 URL 指向现有且完成迁移的本地数据库，缺少它时整仓测试会直接失败。
 - `pnpm test:container`：构建 API 镜像并启动临时容器，检查 `/health`。
 - `docker build -f apps/api/Dockerfile -t wechat-template-api .`：构建 API 生产镜像。
 

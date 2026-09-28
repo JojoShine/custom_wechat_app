@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, HttpCode, Inject, NotFoundException, Post, Req, UseGuards } from '@nestjs/common'
+import { BadRequestException, Body, Controller, Get, Header, HttpCode, Inject, NotFoundException, Post, Req, UseGuards } from '@nestjs/common'
 import { SignJWT } from 'jose'
 import type { WebviewAppSummary, WebviewExchangeResult, WebviewProfile, WebviewTicketResult } from '@template/contracts'
 import type { PrismaClient } from '../../generated/prisma/client.js'
@@ -8,6 +8,7 @@ import { FilesService } from '../files/files.service.js'
 import { WEBVIEW_APPS, type WebviewAppConfig } from './webview.config.js'
 import { WebviewGuard, type WebviewRequest } from './webview.guard.js'
 import { WebviewTicketService } from './webview-ticket.service.js'
+import { demoPage } from './demo-page.js'
 
 const WEBVIEW_TOKEN_SECONDS = 15 * 60
 
@@ -23,6 +24,14 @@ export class WebviewController {
   @Get('apps')
   appsList(): WebviewAppSummary[] {
     return this.apps.map(({ appId, name }) => ({ appId, name }))
+  }
+
+  @Get('demo')
+  @Header('Content-Type', 'text/html; charset=utf-8')
+  @Header('Cache-Control', 'no-store')
+  @Header('Referrer-Policy', 'no-referrer')
+  demo(): string {
+    return demoPage
   }
 
   @Post('tickets')

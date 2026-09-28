@@ -1,6 +1,6 @@
-import { DEMO_PAYMENT_PATH, LOGIN_PATH, PORTAL_PATH, PROFILE_PATH } from './routes'
+import { DEMO_PAYMENT_PATH, LOGIN_PATH, PORTAL_PATH, PROFILE_PATH, WEBVIEW_APPS_PATH } from './routes'
 
-const allowedPaths = new Set([PORTAL_PATH, PROFILE_PATH, ...(process.env.TARO_APP_DEMO_PAYMENTS_ENABLED === 'true' ? [DEMO_PAYMENT_PATH] : [])])
+const allowedPaths = new Set([PORTAL_PATH, PROFILE_PATH, WEBVIEW_APPS_PATH, ...(process.env.TARO_APP_DEMO_PAYMENTS_ENABLED === 'true' ? [DEMO_PAYMENT_PATH] : [])])
 
 export function safeReturnTarget(value?: string): string {
   if (!value) return PORTAL_PATH

@@ -28,12 +28,12 @@ export function createDeviceNetworkCapability(deps: Deps) {
   return {
     getDeviceSnapshot(): DeviceSnapshot {
       const device = deps.getDeviceInfo() as { platform?: string }
-      const window = deps.getWindowInfo() as { windowWidth?: number; windowHeight?: number; safeArea?: { top: number; right: number; bottom: number; left: number } }
+      const window = deps.getWindowInfo() as { screenWidth?: number; screenHeight?: number; windowWidth?: number; windowHeight?: number; safeArea?: { top: number; right: number; bottom: number; left: number } }
       const width = window.windowWidth ?? 0
       const height = window.windowHeight ?? 0
       return {
         platform: device.platform ?? 'unknown', windowWidth: width, windowHeight: height,
-        ...(window.safeArea ? { safeArea: { top: window.safeArea.top, right: width - window.safeArea.right, bottom: height - window.safeArea.bottom, left: window.safeArea.left } } : {})
+        ...(window.safeArea ? { safeArea: { top: window.safeArea.top, right: (window.screenWidth ?? width) - window.safeArea.right, bottom: (window.screenHeight ?? height) - window.safeArea.bottom, left: window.safeArea.left } } : {})
       }
     },
     async getNetworkSnapshot(): Promise<NativeOutcome<NetworkSnapshot>> {

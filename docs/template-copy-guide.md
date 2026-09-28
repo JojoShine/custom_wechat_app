@@ -10,7 +10,7 @@
 
 ## 2. 本地运行与环境
 
-先执行 `source "$HOME/.nvm/nvm.sh" && nvm use 22.23.2`，并使用仓库指定的 pnpm 8.9.2。环境变量分别填写在 `apps/api/.env` 和 `apps/miniapp/.env`；两者均由各自的 `.env.example` 复制，不提交实际值。以下命令默认在仓库根目录运行，明确写出“在 `apps/api`”的除外。各变量的作用见 [README 本地启动](../README.md#本地启动)及后续章节。
+先执行 `source "$HOME/.nvm/nvm.sh" && nvm use 22.23.2`，并使用仓库指定的 pnpm 8.9.2。环境变量分别填写在 `apps/api/.env` 和 `apps/miniapp/.env`；两者均由各自的 `.env.example` 复制，不提交实际值。以下命令默认在仓库根目录运行，明确写出“在 `apps/api`”的除外。各变量的作用见[模板环境配置](template-environments.md)。
 
 1. `pnpm install --frozen-lockfile`。
 2. `docker compose up -d db`，启动本地 PostgreSQL。开发中间件使用本地 Docker；复制品应使用自己的数据库和卷。
@@ -50,5 +50,5 @@
 
 - `pnpm test`、`pnpm typecheck`、`pnpm build` 均通过；需要验证 API 镜像时运行 `pnpm test:container`。
 - 默认构建没有演示入口；仅在明确开启时执行 `TARO_APP_DEMO_PAYMENTS_ENABLED=true pnpm --filter @template/miniapp build:weapp`。
-- 小程序合法域名、支付与退款回调、OSS 私有 Bucket 和 RAM 权限按 [README 接入说明](../README.md#私有图片联调)核对。真实凭证和真实支付流程尚需单独验收。
+- 小程序合法域名、支付与退款回调、OSS 私有 Bucket 和 RAM 权限按[模板环境配置](template-environments.md)核对。真实凭证和真实支付流程尚需单独验收。
 - `git status` 不应包含 `.env`、商户私钥、OSS AccessKey、数据库数据或小程序构建产物。

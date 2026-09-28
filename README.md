@@ -4,6 +4,8 @@
 
 ## 本地启动
 
+环境变量的用途、敏感性及域名要求见[模板环境配置](docs/template-environments.md)。
+
 需要 Node.js 22、pnpm 8.9.2、Docker 和微信开发者工具。
 
 1. `pnpm install --frozen-lockfile`

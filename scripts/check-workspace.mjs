@@ -14,7 +14,7 @@ console.log('Both applications resolve @template/contracts')
 const apiExample = readFileSync('apps/api/.env.example', 'utf8')
 const miniappExample = readFileSync('apps/miniapp/.env.example', 'utf8')
 const readme = readFileSync('README.md', 'utf8')
-for (const name of ['WECHAT_APP_ID', 'WECHAT_APP_SECRET', 'OSS_BUCKET', 'OSS_ACCESS_KEY_ID', 'OSS_ACCESS_KEY_SECRET']) {
+for (const name of ['JWT_SECRET', 'WECHAT_APP_ID', 'WECHAT_APP_SECRET', 'OSS_BUCKET', 'OSS_ACCESS_KEY_ID', 'OSS_ACCESS_KEY_SECRET', 'WECHAT_PAY_MERCHANT_PRIVATE_KEY', 'WECHAT_PAY_API_V3_KEY']) {
   assert.match(apiExample, new RegExp(`^${name}=replace-with-`, 'm'), `${name} must be a placeholder`)
   assert.ok(!miniappExample.includes(name), `${name} must stay server-side`)
 }

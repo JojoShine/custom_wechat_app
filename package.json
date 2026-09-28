@@ -5,7 +5,7 @@
   "scripts": {
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
-    "test": "node scripts/require-test-database.mjs && node scripts/check-workspace.mjs && pnpm -r test",
+    "test": "node scripts/require-test-database.mjs && node scripts/check-workspace.mjs && pnpm --filter @template/contracts build && pnpm --filter @template/api prisma generate && pnpm -r test",
     "test:container": "node scripts/test-container.mjs"
   },
   "devDependencies": {

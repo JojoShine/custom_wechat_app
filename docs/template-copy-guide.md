@@ -22,7 +22,7 @@
 
 本地只有一个 PostgreSQL 测试数据库用于自动测试，不需要为复制演练另建数据库。真实微信、OSS 和支付能力必须在各自测试环境配置后另行联调；本地受控测试通过不代表外部链路已通过。
 
-整仓测试需显式指定已完成迁移的数据库：先在 `apps/api` 用目标库的 `DATABASE_URL` 执行 `pnpm prisma migrate deploy`，再在仓库根目录运行 `TEST_DATABASE_URL=postgresql://template:localdev@localhost:5433/template_payment_dev pnpm test`（这里展示当前项目已有的本地测试库地址；复制品改为自己的单个本地测试库）。根目录 `pnpm test` 在未设置 `TEST_DATABASE_URL` 时会明确失败，避免数据库测试被静默跳过。验收输出应显示 API 100 项、小程序 26 项，且没有跳过数据库测试；新增测试后以实际总数为准。
+整仓测试需显式指定已完成迁移的数据库：先在 `apps/api` 用目标库的 `DATABASE_URL` 执行 `pnpm prisma migrate deploy`，再在仓库根目录运行 `TEST_DATABASE_URL=postgresql://template:localdev@localhost:5433/template_payment_dev pnpm test`（这里展示当前项目已有的本地测试库地址；复制品改为自己的单个本地测试库）。测试命令会先构建共享类型并重新生成 Prisma 客户端，避免复制后的旧产物影响测试。根目录 `pnpm test` 在未设置 `TEST_DATABASE_URL` 时会明确失败，避免数据库测试被静默跳过。验收输出应显示 API 100 项、小程序 26 项，且没有跳过数据库测试；新增测试后以实际总数为准。
 
 ## 3. 替换门户并增加业务页面
 

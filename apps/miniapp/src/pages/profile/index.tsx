@@ -7,8 +7,9 @@ import { recoverProtectedError } from '../../core/navigation/recover'
 import { selectAndUploadImage, uploadAvatar } from '../../core/files/runtime'
 import { bindPhoneFromEvent } from '../../core/phone/bind'
 import { track } from '../../core/telemetry/runtime'
+import { PORTAL_PATH, PROFILE_PATH } from '../../core/navigation/routes'
 
-const profilePath = '/pages/profile/index'
+const profilePath = PROFILE_PATH
 const redirectTo = (url: string) => Taro.redirectTo({ url })
 
 export default function Profile(): JSX.Element {
@@ -52,7 +53,7 @@ export default function Profile(): JSX.Element {
 
   async function signOut(): Promise<void> {
     await logout()
-    await Taro.redirectTo({ url: '/pages/portal/index' })
+    await Taro.redirectTo({ url: PORTAL_PATH })
   }
 
   async function bindPhone(code?: string): Promise<void> {

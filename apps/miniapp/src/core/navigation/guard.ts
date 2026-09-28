@@ -1,13 +1,14 @@
-const PORTAL = '/pages/portal/index'
-const allowedPaths = new Set([PORTAL, '/pages/profile/index', ...(process.env.TARO_APP_DEMO_PAYMENTS_ENABLED === 'true' ? ['/pages/demo-payment/index'] : [])])
+import { DEMO_PAYMENT_PATH, LOGIN_PATH, PORTAL_PATH, PROFILE_PATH } from './routes'
+
+const allowedPaths = new Set([PORTAL_PATH, PROFILE_PATH, ...(process.env.TARO_APP_DEMO_PAYMENTS_ENABLED === 'true' ? [DEMO_PAYMENT_PATH] : [])])
 
 export function safeReturnTarget(value?: string): string {
-  if (!value) return PORTAL
+  if (!value) return PORTAL_PATH
   try {
     const path = decodeURIComponent(value)
-    return allowedPaths.has(path) ? path : PORTAL
+    return allowedPaths.has(path) ? path : PORTAL_PATH
   } catch {
-    return PORTAL
+    return PORTAL_PATH
   }
 }
 
@@ -22,7 +23,7 @@ export function createNavigationGuard(deps: {
       if (session.accessToken) {
         await deps.navigateTo(destination)
       } else {
-        await deps.navigateTo(`/pages/login/index?returnTo=${encodeURIComponent(destination)}`)
+        await deps.navigateTo(`${LOGIN_PATH}?returnTo=${encodeURIComponent(destination)}`)
       }
     }
   }

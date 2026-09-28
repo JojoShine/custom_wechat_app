@@ -5,8 +5,9 @@ import type { DemoOrderView, PaymentView, RefundView } from '@template/contracts
 import { apiRequest } from '../../core/api/client'
 import { createPaymentFlow } from '../../core/payments/payment'
 import { recoverProtectedError } from '../../core/navigation/recover'
+import { DEMO_PAYMENT_PATH } from '../../core/navigation/routes'
 
-const path = '/pages/demo-payment/index'
+const path = DEMO_PAYMENT_PATH
 const flow = createPaymentFlow({ request: apiRequest, requestPayment: (params) => Taro.requestPayment(params) })
 const redirectTo = (url: string) => Taro.redirectTo({ url })
 

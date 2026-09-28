@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import Portal from './index'
 
 jest.mock('./index.css', () => ({}))
+jest.mock('./button-colors.css', () => ({}))
 jest.mock('../../components/native-capabilities/index.css', () => ({}), { virtual: true })
 jest.mock('@tarojs/components', () => ({
   Button: ({ openType: _openType, ...props }: { openType?: string }) => jest.requireActual<typeof import('react')>('react').createElement('button', props),
@@ -21,4 +22,13 @@ it('shows native actions directly on the portal and removes placeholder cards', 
   expect(html).not.toContain('图片上传')
   expect(html).not.toContain('手机号授权')
   expect(html).not.toContain('能力中心')
+})
+
+it('groups sharing and payment with the native capabilities', () => {
+  const html = renderToStaticMarkup(<Portal />)
+  const native = html.slice(html.indexOf('class="cap-modules"'))
+  expect(native).toContain('06 / 分享好友')
+  expect(native).toContain('07 / 支付与退款')
+  expect(native).toContain('待开通')
+  expect(html).not.toContain('portal-grid')
 })

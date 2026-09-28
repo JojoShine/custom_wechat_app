@@ -6,6 +6,8 @@ import type { GeoPoint } from '../../core/native/location'
 import type { SelectedMedia } from '../../core/native/media'
 import type { NetworkSnapshot } from '../../core/native/device-network'
 import { clipboardCapability, deviceNetworkCapability, locationCapability, mediaCapability, scanCapability } from '../../core/native/runtime'
+import { navigateProtected } from '../../core/navigation'
+import { DEMO_PAYMENT_PATH } from '../../core/navigation/routes'
 import './index.css'
 
 type Status = Exclude<NativeOutcome<never>['status'], 'ok'> | 'ok' | ''
@@ -14,6 +16,8 @@ const statusText: Record<Exclude<Status, ''>, string> = {
   ok: '操作成功', cancelled: '已取消，保留上次结果', denied: '未授权，请在系统设置中允许后重试',
   unavailable: '当前环境暂不支持此能力', failed: '操作失败，请稍后重试'
 }
+
+const paymentEnabled = process.env.TARO_APP_DEMO_PAYMENTS_ENABLED === 'true'
 
 export default function NativeCapabilities(): JSX.Element {
   const [location, setLocation] = useState<GeoPoint | null>(null)
@@ -125,6 +129,18 @@ export default function NativeCapabilities(): JSX.Element {
       {networkStatus ? <Text className='cap-status'>{statusText[networkStatus]}</Text> : null}
       {device ? <View className='cap-result'><Text>{device.platform} · {device.windowWidth} × {device.windowHeight}</Text>{device.safeArea ? <Text>安全区域：上 {device.safeArea.top} / 下 {device.safeArea.bottom}</Text> : null}</View> : null}
       {network ? <View className='cap-result'><Text>{network.connected ? '已连接' : '未连接'} · {network.type}</Text></View> : null}
+    </View>
+
+    <View className='cap-section'>
+      <Text className='cap-heading'>06 / 分享好友</Text>
+      <Text className='cap-intro'>将轻购实验室分享给微信好友。</Text>
+      <Button className='cap-button cap-primary' openType='share'>分享给好友</Button>
+    </View>
+
+    <View className='cap-section'>
+      <Text className='cap-heading'>07 / 支付与退款</Text>
+      <Text className='cap-intro'>体验通用下单、微信支付和退款流程。</Text>
+      <Button className='cap-button cap-primary' disabled={!paymentEnabled} onClick={paymentEnabled ? () => void navigateProtected(DEMO_PAYMENT_PATH) : undefined}>{paymentEnabled ? '进入支付演示' : '待开通'}</Button>
     </View>
 
   </View>

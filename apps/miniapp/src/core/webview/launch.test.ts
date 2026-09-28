@@ -10,6 +10,11 @@ describe('WebView launch', () => {
     expect(buildWebviewUrl(entryUrl, 'app 1', ticket.ticket)).toBe('https://demo.example.com/view?from=miniapp&appId=app%201&ticket=a%2Bb%2F%3D#section')
   })
 
+  it('replaces bare and encoded bridge parameters without keeping old ticket or coordinates', () => {
+    const url = buildWebviewUrl('https://demo.example.com/view?from=miniapp&appId&%74icket=old&%6catitude=12&%6congitude=34&%63oordinateSystem=gcj02#section', 'demo', 'fresh')
+    expect(url).toBe('https://demo.example.com/view?from=miniapp&appId=demo&ticket=fresh#section')
+  })
+
   it('rejects invalid or untrusted URL schemes', () => {
     expect(() => buildWebviewUrl('javascript:alert(1)', 'demo', 'ticket')).toThrow()
     expect(() => buildWebviewUrl('http://evil.example.com', 'demo', 'ticket')).toThrow()

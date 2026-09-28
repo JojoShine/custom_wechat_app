@@ -25,6 +25,6 @@ export function loadWebviewApps(env: NodeJS.ProcessEnv): WebviewAppConfig[] {
       throw new Error('Invalid WebView app origin')
     }
     seen.add(app.appId)
-    return { appId: app.appId, name: app.name, entryUrl: app.entryUrl, origin: app.origin }
+    return { appId: app.appId, name: app.name, entryUrl: url.href, origin: app.origin }
   })
 }

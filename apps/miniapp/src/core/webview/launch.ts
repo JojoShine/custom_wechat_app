@@ -10,15 +10,25 @@ export function buildWebviewUrl(entryUrl: string, appId: string, ticket: string,
   if (!match || match[2].includes('@') || /\s/.test(entryUrl)) throw new Error('Invalid WebView URL')
   const host = match[2].startsWith('[') ? match[2].slice(0, match[2].indexOf(']') + 1) : match[2].split(':')[0]
   if (match[1] === 'http' && !['localhost', '127.0.0.1', '[::1]'].includes(host)) throw new Error('Invalid WebView URL')
-  if (/[?&](?:appId|ticket|latitude|longitude|coordinateSystem)=/.test(beforeHash)) throw new Error('Reserved WebView parameter')
   if (!appId || !ticket) throw new Error('Missing WebView launch value')
+  const queryAt = beforeHash.indexOf('?')
+  const path = queryAt < 0 ? beforeHash : beforeHash.slice(0, queryAt)
+  const originalQuery = queryAt < 0 ? '' : beforeHash.slice(queryAt + 1)
+  const reserved = new Set(['appId', 'ticket', 'latitude', 'longitude', 'coordinateSystem'])
+  const query = originalQuery.split('&').filter((part) => {
+    if (!part) return false
+    try {
+      return !reserved.has(decodeURIComponent(part.split('=')[0].replace(/\+/g, ' ')))
+    } catch {
+      throw new Error('Invalid WebView URL')
+    }
+  })
   const parameters = [`appId=${encodeURIComponent(appId)}`, `ticket=${encodeURIComponent(ticket)}`]
   if (point) {
     if (!Number.isFinite(point.latitude) || !Number.isFinite(point.longitude) || Math.abs(point.latitude) > 90 || Math.abs(point.longitude) > 180 || point.coordinateSystem !== 'gcj02') throw new Error('Invalid WebView coordinate')
     parameters.push(`latitude=${point.latitude}`, `longitude=${point.longitude}`, 'coordinateSystem=gcj02')
   }
-  const separator = beforeHash.includes('?') ? (/[?&]$/.test(beforeHash) ? '' : '&') : '?'
-  return `${beforeHash}${separator}${parameters.join('&')}${fragment}`
+  return `${path}?${[...query, ...parameters].join('&')}${fragment}`
 }
 
 export function createWebviewLauncher(deps: {

@@ -13,6 +13,10 @@ describe('loadWebviewApps', () => {
     expect(load([app])).toEqual([app])
   })
 
+  it('normalizes accepted URL schemes for the miniapp launcher', () => {
+    expect(load([{ ...app, entryUrl: 'HTTPS://demo.example.com/home' }])[0].entryUrl).toBe(app.entryUrl)
+  })
+
   it('rejects duplicate app identifiers', () => {
     expect(() => load([app, { ...app, name: 'another' }])).toThrow()
   })

@@ -6,7 +6,6 @@ import type { GeoPoint } from '../../core/native/location'
 import type { SelectedMedia } from '../../core/native/media'
 import type { NetworkSnapshot } from '../../core/native/device-network'
 import { clipboardCapability, deviceNetworkCapability, locationCapability, mediaCapability, scanCapability } from '../../core/native/runtime'
-import { WEBVIEW_APPS_PATH } from '../../core/navigation/routes'
 import './index.css'
 
 type Status = Exclude<NativeOutcome<never>['status'], 'ok'> | 'ok' | ''
@@ -16,7 +15,7 @@ const statusText: Record<Exclude<Status, ''>, string> = {
   unavailable: '当前环境暂不支持此能力', failed: '操作失败，请稍后重试'
 }
 
-export default function Capabilities(): JSX.Element {
+export default function NativeCapabilities(): JSX.Element {
   const [location, setLocation] = useState<GeoPoint | null>(null)
   const [locationStatus, setLocationStatus] = useState<Status>('')
   const [scan, setScan] = useState<{ text: string; format: string } | null>(null)
@@ -62,10 +61,10 @@ export default function Capabilities(): JSX.Element {
     if (result.status === 'ok') setNetwork(result.value)
   }
 
-  return <View className='cap-page'>
+  return <View className='cap-modules'>
     <View className='cap-header'>
-      <Text className='cap-kicker'>QINGGOU / TOOLBOX</Text>
-      <Text className='cap-title'>能力中心</Text>
+      <Text className='cap-kicker'>QINGGOU / NATIVE</Text>
+      <Text className='cap-title'>原生能力</Text>
       <Text className='cap-subtitle'>点按操作，探索小程序原生能力</Text>
     </View>
 
@@ -128,10 +127,5 @@ export default function Capabilities(): JSX.Element {
       {network ? <View className='cap-result'><Text>{network.connected ? '已连接' : '未连接'} · {network.type}</Text></View> : null}
     </View>
 
-    <View className='cap-section cap-webview-section'>
-      <Text className='cap-heading'>06 / 网页应用</Text>
-      <Text className='cap-intro'>一次性票据安全交换用户资料，也可选择把当前位置交给网页。</Text>
-      <Button className='cap-button cap-primary' onClick={() => void Taro.navigateTo({ url: WEBVIEW_APPS_PATH })}>进入网页应用 →</Button>
-    </View>
   </View>
 }

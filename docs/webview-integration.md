@@ -14,7 +14,7 @@ HTTP 只允许本地 loopback 地址。正式环境改用 HTTPS 网页地址，�
 
 ## 网页接入流程
 
-1. 用户从小程序“能力中心 → 网页应用”选择“打开网页”或“携带位置打开”。未登录时先完成微信登录，再从列表重新点选。定位拒绝、取消或失败时仍打开网页，且不附坐标。
+1. 用户从小程序首页的“网页应用”入口选择“打开网页”或“携带位置打开”。未登录时先完成微信登录，再从列表重新点选。定位拒绝、取消或失败时仍打开网页，且不附坐标。
 2. 小程序凭原生登录态调用 `POST /webview/tickets`，请求体为 `{ "appId": "demo" }`。响应含登记的 `entryUrl`、高熵 `ticket` 和 `expiresIn: 60`。ticket 仅可兑换一次。
 3. 小程序把 `appId`、`ticket` 放在入口 URL 的查询参数；定位成功时还加入 `latitude`、`longitude`、`coordinateSystem=gcj02`。原入口已有查询参数和片段会保留。坐标来自本次主动定位，但 URL 可被用户修改，网页不能将其当成可信身份、授权或支付依据。
 4. 网页加载后**先读取并立即从地址栏移除 ticket**，再用 JSON 请求 `POST /webview/exchange`：
@@ -42,6 +42,6 @@ docker run --rm -p 127.0.0.1:3100:3000 --env-file apps/api/.env \
   wechat-template-api:webview
 ```
 
-另一个终端检查 `http://127.0.0.1:3100/health`、`http://127.0.0.1:3100/webview/apps` 和 `http://127.0.0.1:3100/webview/demo`。在 `apps/miniapp/.env` 设置 `TARO_APP_API_BASE_URL=http://127.0.0.1:3100`，重新构建并在微信开发者工具导入 `apps/miniapp/dist`。仅对本地模拟器关闭域名校验，打开能力中心里的“网页应用”，验证登录返回、无坐标打开、携带模拟坐标打开、票据兑换及资料展示。可在浏览器直接访问 `/webview/demo` 检查缺票据提示；该页面不会为手写 URL 签发票据。
+另一个终端检查 `http://127.0.0.1:3100/health`、`http://127.0.0.1:3100/webview/apps` 和 `http://127.0.0.1:3100/webview/demo`。在 `apps/miniapp/.env` 设置 `TARO_APP_API_BASE_URL=http://127.0.0.1:3100`，重新构建并在微信开发者工具导入 `apps/miniapp/dist`。仅对本地模拟器关闭域名校验，从首页打开“网页应用”，验证登录返回、无坐标打开、携带模拟坐标打开、票据兑换及资料展示。可在浏览器直接访问 `/webview/demo` 检查缺票据提示；该页面不会为手写 URL 签发票据。
 
 本地模拟器结果不代表真机联通。真机与正式部署需要公网 HTTPS 网页、微信后台配置 **业务域名**，以及小程序 API 请求合法域名；外部网页还需能访问 NestJS API。上线前在真机检查位置授权、拒绝定位后仍可打开、网页首次加载和 JWT 到期后的重新进入。Taro WebView 的域名与平台限制见[官方组件文档](https://docs.taro.zone/docs/components/open/web-view)。

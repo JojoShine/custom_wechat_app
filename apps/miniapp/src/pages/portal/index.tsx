@@ -1,7 +1,8 @@
 import { Button, Text, View } from '@tarojs/components'
 import Taro, { useShareAppMessage } from '@tarojs/taro'
+import NativeCapabilities from '../../components/native-capabilities'
 import { navigateProtected } from '../../core/navigation'
-import { CAPABILITIES_PATH, DEMO_PAYMENT_PATH, PORTAL_PATH, PROFILE_PATH, WEBVIEW_APPS_PATH } from '../../core/navigation/routes'
+import { DEMO_PAYMENT_PATH, PORTAL_PATH, PROFILE_PATH, WEBVIEW_APPS_PATH } from '../../core/navigation/routes'
 import { portalShare } from '../../core/share/portal'
 import { track } from '../../core/telemetry/runtime'
 import './index.css'
@@ -51,16 +52,6 @@ export default function Portal(): JSX.Element {
       </Button>
 
       <View className='portal-grid'>
-        <Button className='portal-capability' onClick={openProfile}>
-          <View className='portal-icon portal-icon-image' />
-          <Text className='portal-capability-name'>图片上传</Text>
-          <Text className='portal-arrow'>›</Text>
-        </Button>
-        <Button className='portal-capability' onClick={openProfile}>
-          <View className='portal-icon portal-icon-phone' />
-          <Text className='portal-capability-name'>手机号授权</Text>
-          <Text className='portal-arrow'>›</Text>
-        </Button>
         <Button className='portal-capability' openType='share'>
           <View className='portal-icon portal-icon-share' />
           <Text className='portal-capability-name'>分享好友</Text>
@@ -73,14 +64,7 @@ export default function Portal(): JSX.Element {
         </Button>
       </View>
 
-      <Button className='portal-center-card' onClick={() => void Taro.navigateTo({ url: CAPABILITIES_PATH })}>
-        <View className='portal-center-copy'>
-          <Text className='portal-center-kicker'>EXPLORE / 01</Text>
-          <Text className='portal-center-title'>能力中心</Text>
-          <Text className='portal-center-subtitle'>位置 · 扫码 · 媒体 · 设备</Text>
-        </View>
-        <Text className='portal-center-arrow'>→</Text>
-      </Button>
+      <NativeCapabilities />
 
       <View className='portal-footer-scene'>
         <Text>按场景替换门户，能力即插即用</Text>

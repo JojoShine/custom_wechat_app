@@ -6,6 +6,7 @@ import type { GeoPoint } from '../../core/native/location'
 import type { SelectedMedia } from '../../core/native/media'
 import type { NetworkSnapshot } from '../../core/native/device-network'
 import { clipboardCapability, deviceNetworkCapability, locationCapability, mediaCapability, scanCapability } from '../../core/native/runtime'
+import { WEBVIEW_APPS_PATH } from '../../core/navigation/routes'
 import './index.css'
 
 type Status = Exclude<NativeOutcome<never>['status'], 'ok'> | 'ok' | ''
@@ -125,6 +126,12 @@ export default function Capabilities(): JSX.Element {
       {networkStatus ? <Text className='cap-status'>{statusText[networkStatus]}</Text> : null}
       {device ? <View className='cap-result'><Text>{device.platform} · {device.windowWidth} × {device.windowHeight}</Text>{device.safeArea ? <Text>安全区域：上 {device.safeArea.top} / 下 {device.safeArea.bottom}</Text> : null}</View> : null}
       {network ? <View className='cap-result'><Text>{network.connected ? '已连接' : '未连接'} · {network.type}</Text></View> : null}
+    </View>
+
+    <View className='cap-section cap-webview-section'>
+      <Text className='cap-heading'>06 / 网页应用</Text>
+      <Text className='cap-intro'>一次性票据安全交换用户资料，也可选择把当前位置交给网页。</Text>
+      <Button className='cap-button cap-primary' onClick={() => void Taro.navigateTo({ url: WEBVIEW_APPS_PATH })}>进入网页应用 →</Button>
     </View>
   </View>
 }

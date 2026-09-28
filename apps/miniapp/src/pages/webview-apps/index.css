@@ -1,0 +1,20 @@
+.webapps-page { min-height: 100vh; box-sizing: border-box; padding: 32rpx 28rpx 100rpx; background: #f8f5e9; color: #163d34; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; }
+.webapps-hero { display: flex; flex-direction: column; padding: 34rpx 30rpx 38rpx; border: 4rpx solid #164b3c; border-radius: 8rpx; background: #b9e6f3; box-shadow: 8rpx 8rpx 0 #d9d3bd; }
+.webapps-kicker, .webapps-card-index { font-size: 22rpx; font-weight: 800; letter-spacing: 3rpx; color: #175945; }
+.webapps-title { margin-top: 10rpx; font-size: 58rpx; font-weight: 900; letter-spacing: 3rpx; }
+.webapps-subtitle { margin-top: 8rpx; font-size: 26rpx; font-weight: 700; }
+.webapps-note, .webapps-empty, .webapps-card, .webapps-error { margin-top: 28rpx; padding: 26rpx; border: 4rpx solid #164b3c; border-radius: 8rpx; background: #fffbef; box-shadow: 8rpx 8rpx 0 #d9d3bd; font-size: 25rpx; line-height: 1.5; }
+.webapps-note { background: #ecf5e7; }
+.webapps-state { display: block; margin-top: 30rpx; font-size: 26rpx; font-weight: 700; }
+.webapps-empty { display: flex; flex-direction: column; gap: 8rpx; align-items: center; text-align: center; font-weight: 800; }
+.webapps-empty-icon { font-size: 66rpx; line-height: 1; }
+.webapps-empty-sub { color: #5c7167; font-size: 22rpx; font-weight: 600; overflow-wrap: anywhere; }
+.webapps-card { display: flex; flex-direction: column; }
+.webapps-card-name { margin-top: 12rpx; font-size: 38rpx; font-weight: 900; }
+.webapps-actions { display: flex; flex-direction: column; gap: 14rpx; margin-top: 24rpx; }
+.webapps-button, .webapps-retry { display: flex; align-items: center; justify-content: space-between; min-height: 78rpx; margin: 0; padding: 0 22rpx; border: 4rpx solid #164b3c; border-radius: 6rpx; background: #fff7dc; box-shadow: 5rpx 5rpx 0 #d9d3bd; color: #163d34; font-size: 26rpx; font-weight: 800; }
+.webapps-button::after, .webapps-retry::after { border: 0; }
+.webapps-button[disabled] { opacity: .55; }
+.webapps-primary { background: #175945; box-shadow: 5rpx 5rpx 0 #123b33; color: #fffef2; }
+.webapps-error { display: flex; flex-direction: column; gap: 20rpx; color: #943d37; font-weight: 700; }
+.webapps-retry { align-self: flex-start; }

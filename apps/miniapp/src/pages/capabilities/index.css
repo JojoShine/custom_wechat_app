@@ -14,3 +14,4 @@
 .cap-status { display: block; margin-top: 24rpx; font-size: 25rpx; font-weight: 700; }
 .cap-result { display: flex; flex-direction: column; gap: 7rpx; overflow-wrap: anywhere; margin-top: 18rpx; padding: 20rpx; border: 2rpx dashed #164b3c; background: #ecf5e7; font-size: 25rpx; line-height: 1.5; }
 .cap-input { height: 78rpx; margin-top: 20rpx; padding: 0 18rpx; border: 4rpx solid #164b3c; background: #fffef6; font-size: 27rpx; }
+.cap-webview-section { background: #d7f1e7; }

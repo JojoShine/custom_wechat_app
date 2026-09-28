@@ -61,6 +61,8 @@ API 启动后每分钟补查待定或到期支付、待定退款并重投业务�
 
 ## 检查与打包
 
+第四阶段在隔离工作树按[复制指引](docs/template-copy-guide.md)演练：使用 nvm Node 22.23.2 和现有单个本地测试数据库，锁文件安装、`pnpm test`（API 100 项、小程序 26 项）、`pnpm typecheck`、`pnpm build`、演示开关启用构建、`pnpm test:container` 均通过；Prisma 的 7 个迁移为最新状态。默认小程序产物不含支付演示页，启用构建包含该页。此验收不代表微信或 OSS 真实环境已联通。
+
 - `pnpm test`、`pnpm typecheck`、`pnpm build`：仓库检查。
 - `pnpm test:container`：构建 API 镜像并启动临时容器，检查 `/health`。
 - `docker build -f apps/api/Dockerfile -t wechat-template-api .`：构建 API 生产镜像。

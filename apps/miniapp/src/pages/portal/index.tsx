@@ -6,6 +6,7 @@ import { DEMO_PAYMENT_PATH, PORTAL_PATH, PROFILE_PATH, WEBVIEW_APPS_PATH } from 
 import { portalShare } from '../../core/share/portal'
 import { track } from '../../core/telemetry/runtime'
 import './index.css'
+import './button-colors.css'
 
 const paymentEnabled = process.env.TARO_APP_DEMO_PAYMENTS_ENABLED === 'true'
 

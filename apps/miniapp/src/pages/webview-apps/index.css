@@ -12,9 +12,9 @@
 .webapps-card { display: flex; flex-direction: column; }
 .webapps-card-name { margin-top: 12rpx; font-size: 38rpx; font-weight: 900; }
 .webapps-actions { display: flex; flex-direction: column; gap: 14rpx; margin-top: 24rpx; }
-.webapps-button, .webapps-retry { display: flex; align-items: center; justify-content: space-between; min-height: 78rpx; margin: 0; padding: 0 22rpx; border: 4rpx solid #164b3c; border-radius: 6rpx; background: #fff7dc; box-shadow: 5rpx 5rpx 0 #d9d3bd; color: #163d34; font-size: 26rpx; font-weight: 800; }
+.webapps-button, .webapps-retry { display: flex; align-items: center; justify-content: space-between; min-height: 78rpx; margin: 0; padding: 0 22rpx; border: 4rpx solid #164b3c; border-radius: 6rpx; background: #fff7dc; box-shadow: 5rpx 5rpx 0 #d9d3bd; color: #111; font-size: 26rpx; font-weight: 800; }
 .webapps-button::after, .webapps-retry::after { border: 0; }
-.webapps-button[disabled] { opacity: .55; }
-.webapps-primary { background: #175945; box-shadow: 5rpx 5rpx 0 #123b33; color: #fffef2; }
+.webapps-button[disabled] { opacity: 1; background: #e8e4d8; color: #111; }
+.webapps-primary { background: #a8dfc0; box-shadow: 5rpx 5rpx 0 #123b33; color: #111; }
 .webapps-error { display: flex; flex-direction: column; gap: 20rpx; color: #943d37; font-weight: 700; }
 .webapps-retry { align-self: flex-start; }

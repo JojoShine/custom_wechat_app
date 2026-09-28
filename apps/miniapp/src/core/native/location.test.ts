@@ -38,3 +38,8 @@ test('returns unavailable without invoking location API', async () => {
   expect(await api.getCurrentLocation()).toEqual({ status: 'unavailable' })
   expect(deps.getLocation).not.toHaveBeenCalled()
 })
+
+test('rejects missing and nonnumeric platform coordinates', async () => {
+  const { api } = capability({ chooseLocation: async () => ({ latitude: null, longitude: '' }) })
+  expect(await api.chooseLocation()).toEqual({ status: 'failed' })
+})

@@ -23,6 +23,8 @@ function valid(latitude: number, longitude: number): boolean {
 function parsePoint(value: unknown): GeoPoint | null {
   if (typeof value !== 'object' || value === null) return null
   const source = value as Record<string, unknown>
+  if ((typeof source.latitude !== 'number' && (typeof source.latitude !== 'string' || source.latitude.trim() === '')) ||
+      (typeof source.longitude !== 'number' && (typeof source.longitude !== 'string' || source.longitude.trim() === ''))) return null
   const latitude = Number(source.latitude)
   const longitude = Number(source.longitude)
   if (!valid(latitude, longitude)) return null

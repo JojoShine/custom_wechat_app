@@ -4,7 +4,7 @@
 
 ## 构建与发布镜像
 
-当前已部署的服务器镜像为 `crpi-gvnc7ueixd6x4qdx-vpc.cn-hangzhou.personal.cr.aliyuncs.com/counttech/custom-wechat-api:11cf27e945a89fcd555cb7b90603b181358c7c22`（linux/amd64）。后续版本由 ACR 绑定 GitHub `master` 构建，设置见[GitHub 检查、ACR 构建与生产部署](ci-cd.md)。本地需要验证 Dockerfile 时，在仓库根目录运行：
+当前已部署的服务器镜像为 `crpi-gvnc7ueixd6x4qdx-vpc.cn-hangzhou.personal.cr.aliyuncs.com/counttech/custom-wechat-api:11cf27e945a89fcd555cb7b90603b181358c7c22`（linux/amd64）。后续计划由 GitHub CI 构建并发布到 Docker Hub，设置见[GitHub CI、Docker Hub 镜像与生产部署](ci-cd.md)；首次发布与 ECS 拉取尚待验证。本地需要验证 Dockerfile 时，在仓库根目录运行：
 
 ```bash
 docker build --platform linux/amd64 -f Dockerfile -t custom-wechat-api:local .
@@ -25,7 +25,7 @@ chmod 600 .env.production
 
 `JWT_SECRET` 使用独立的随机值。填写小程序、OSS 和支付参数；PEM 可按现有 API 配置格式写成一行并用字面量 `\n` 表示换行。`WEBVIEW_APPS_JSON` 需换成实际上线的 HTTPS 网页应用配置；`[]` 表示暂不开放网页应用。本机已准备的 `.env.production` 除 `DATABASE_URL` 外已填入现有配置，可安全传到服务器后补上数据库连接串。
 
-服务器从私有 ACR 拉取镜像前，需对 `crpi-gvnc7ueixd6x4qdx-vpc.cn-hangzhou.personal.cr.aliyuncs.com` 执行 `docker login`；Registry 密码只输入到 Docker 登录提示中，不写进 `.env.production`。
+当前 ACR 镜像使用服务器已有的登录状态。切换到公开 Docker Hub 镜像后，ECS 拉取该镜像无需 `docker login`。
 
 示例文件默认将 `WECHAT_PAY_MCH_ID` 留空；如使用已填入商户号的本机 `.env.production`，API 启动时会加载支付模块。开放支付入口前，先验证公网代理和两个通知地址。若先以空商户号启动，填入商户号后执行 `up -d --force-recreate api` 使配置生效。
 

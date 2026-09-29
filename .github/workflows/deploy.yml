@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: Exact image tag shown in ACR after a successful master build
+        description: Commit SHA of a successful CI image on Docker Hub
         required: true
         type: string
 
@@ -14,7 +14,7 @@ jobs:
     environment: production
     env:
       IMAGE_TAG: ${{ inputs.image_tag }}
-      ACR_VPC_IMAGE: ${{ vars.ACR_VPC_IMAGE }}
+      DOCKERHUB_IMAGE: jojoshine/custom-wechat-api
       DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
       DEPLOY_USER: ${{ vars.DEPLOY_USER }}
       DEPLOY_DIR: ${{ vars.DEPLOY_DIR }}
@@ -24,8 +24,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check deployment configuration
         run: |
-          [[ "$IMAGE_TAG" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]
-          [[ "$ACR_VPC_IMAGE" =~ ^[A-Za-z0-9._/-]+$ ]]
+          [[ "$IMAGE_TAG" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$DOCKERHUB_IMAGE" =~ ^[A-Za-z0-9._/-]+$ ]]
           [[ "$DEPLOY_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
           [[ "$DEPLOY_USER" =~ ^[A-Za-z0-9_-]+$ ]]
           [[ "$DEPLOY_DIR" =~ ^/[A-Za-z0-9/_-]+$ ]]
@@ -41,7 +41,7 @@ jobs:
           chmod 600 ~/.ssh/known_hosts
       - name: Deploy published image
         run: |
-          image_ref="$ACR_VPC_IMAGE:$IMAGE_TAG"
+          image_ref="$DOCKERHUB_IMAGE:$IMAGE_TAG"
           target="$DEPLOY_USER@$DEPLOY_HOST"
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes docker-compose.prod.yml "$target:$DEPLOY_DIR/docker-compose.prod.yml"
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes "$target" "bash -s -- '$image_ref' '$DEPLOY_DIR'" < scripts/deploy-production.sh

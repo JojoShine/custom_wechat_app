@@ -4,15 +4,13 @@
 
 ## 构建与发布镜像
 
-当前已发布的服务器镜像为 `jojoshine/custom-wechat-api:11cf27e`（linux/amd64）。后续版本在开发机仓库根目录构建，并使用新的不可变版本标签：
+当前已部署的服务器镜像为 `crpi-gvnc7ueixd6x4qdx-vpc.cn-hangzhou.personal.cr.aliyuncs.com/counttech/custom-wechat-api:11cf27e945a89fcd555cb7b90603b181358c7c22`（linux/amd64）。后续版本由 ACR 绑定 GitHub `master` 构建，设置见[GitHub 检查、ACR 构建与生产部署](ci-cd.md)。本地需要验证 Dockerfile 时，在仓库根目录运行：
 
 ```bash
-API_IMAGE=jojoshine/custom-wechat-api:<new-version>
-docker build --platform linux/amd64 -f apps/api/Dockerfile -t "$API_IMAGE" .
-docker push "$API_IMAGE"
+docker build --platform linux/amd64 -f Dockerfile -t custom-wechat-api:local .
 ```
 
-镜像不包含 `.env` 文件。当前服务器为 x86_64，因此镜像使用 `linux/amd64`。构建前须登录镜像仓库。
+镜像不包含 `.env` 文件。当前服务器为 x86_64，因此镜像使用 `linux/amd64`。
 
 ## 服务器首次启动
 
@@ -27,7 +25,7 @@ chmod 600 .env.production
 
 `JWT_SECRET` 使用独立的随机值。填写小程序、OSS 和支付参数；PEM 可按现有 API 配置格式写成一行并用字面量 `\n` 表示换行。`WEBVIEW_APPS_JSON` 需换成实际上线的 HTTPS 网页应用配置；`[]` 表示暂不开放网页应用。本机已准备的 `.env.production` 除 `DATABASE_URL` 外已填入现有配置，可安全传到服务器后补上数据库连接串。
 
-若镜像仓库为私有仓库，先在服务器执行 `docker login -u jojoshine`，使用 Docker Hub 访问令牌登录，再执行下面的拉取命令。访问令牌只输入到 Docker 登录提示中，不写进 `.env.production`。
+服务器从私有 ACR 拉取镜像前，需对 `crpi-gvnc7ueixd6x4qdx-vpc.cn-hangzhou.personal.cr.aliyuncs.com` 执行 `docker login`；Registry 密码只输入到 Docker 登录提示中，不写进 `.env.production`。
 
 示例文件默认将 `WECHAT_PAY_MCH_ID` 留空；如使用已填入商户号的本机 `.env.production`，API 启动时会加载支付模块。开放支付入口前，先验证公网代理和两个通知地址。若先以空商户号启动，填入商户号后执行 `up -d --force-recreate api` 使配置生效。
 
@@ -37,15 +35,15 @@ docker compose --env-file .env.production -f docker-compose.prod.yml up -d
 docker compose --env-file .env.production -f docker-compose.prod.yml ps
 ```
 
-Compose 会先连接现有数据库执行迁移，成功后启动 API；若数据库不可达或迁移失败，API 不会启动。API 默认只监听宿主机 `127.0.0.1:3100`。更新镜像标签后重复 `pull` 和 `up -d`，迁移会在新镜像启动时执行。
+Compose 会先连接现有数据库执行迁移，成功后启动 API；若数据库不可达或迁移失败，API 不会启动。当前 ECS 上 `3100` 被另一个应用占用，API 监听宿主机 `127.0.0.1:3101`。更新镜像标签后重复 `pull` 和 `up -d`，迁移会在新镜像启动时执行。
 
 ## HTTPS 反向代理
 
-现有 NestJS 路由没有 `/custom_wechat_app` 前缀。宿主机上的 HTTPS 反向代理必须把这个前缀去掉，再转发到 `127.0.0.1:3100`。例如 Nginx：
+现有 NestJS 路由没有 `/custom_wechat_app` 前缀。当前 Nginx 在 Docker 容器中，需与 API 容器同处 `custom-wechat-app-prod_default` 网络，并把这个前缀去掉后转发到 API 容器端口 `3000`：
 
 ```nginx
-location /custom_wechat_app/ {
-    proxy_pass http://127.0.0.1:3100/;
+location ^~ /custom_wechat_app/ {
+    proxy_pass http://custom-wechat-app-prod-api-1:3000/;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: Full commit SHA of a published master build
+        description: Exact image tag shown in ACR after a successful master build
         required: true
         type: string
 
@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check deployment configuration
         run: |
-          [[ "$IMAGE_TAG" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$IMAGE_TAG" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]
           [[ "$ACR_VPC_IMAGE" =~ ^[A-Za-z0-9._/-]+$ ]]
           [[ "$DEPLOY_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
           [[ "$DEPLOY_USER" =~ ^[A-Za-z0-9_-]+$ ]]

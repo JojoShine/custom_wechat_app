@@ -3,7 +3,7 @@ set -euo pipefail
 
 image_ref=${1:?image reference required}
 deploy_dir=${2:?deployment directory required}
-[[ "$image_ref" =~ ^[A-Za-z0-9._/-]+:[0-9a-f]{40}$ ]] || { echo 'Invalid image reference' >&2; exit 1; }
+[[ "$image_ref" =~ ^[A-Za-z0-9._/-]+:[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]] || { echo 'Invalid image reference' >&2; exit 1; }
 [[ "$deploy_dir" =~ ^/[A-Za-z0-9/_-]+$ ]] || { echo 'Invalid deployment directory' >&2; exit 1; }
 
 cd "$deploy_dir"

@@ -1,0 +1,47 @@
+name: Deploy API
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Full commit SHA of a published master build
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      IMAGE_TAG: ${{ inputs.image_tag }}
+      ACR_VPC_IMAGE: ${{ vars.ACR_VPC_IMAGE }}
+      DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+      DEPLOY_DIR: ${{ vars.DEPLOY_DIR }}
+      DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check deployment configuration
+        run: |
+          [[ "$IMAGE_TAG" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$ACR_VPC_IMAGE" =~ ^[A-Za-z0-9._/-]+$ ]]
+          [[ "$DEPLOY_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
+          [[ "$DEPLOY_USER" =~ ^[A-Za-z0-9_-]+$ ]]
+          [[ "$DEPLOY_DIR" =~ ^/[A-Za-z0-9/_-]+$ ]]
+          test -n "$DEPLOY_SSH_PRIVATE_KEY"
+          test -n "$DEPLOY_KNOWN_HOSTS"
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+      - name: Deploy published image
+        run: |
+          image_ref="$ACR_VPC_IMAGE:$IMAGE_TAG"
+          target="$DEPLOY_USER@$DEPLOY_HOST"
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes docker-compose.prod.yml "$target:$DEPLOY_DIR/docker-compose.prod.yml"
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes "$target" "bash -s -- '$image_ref' '$DEPLOY_DIR'" < scripts/deploy-production.sh

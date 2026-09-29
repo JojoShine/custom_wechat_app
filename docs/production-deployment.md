@@ -4,15 +4,15 @@
 
 ## 构建与发布镜像
 
-在开发机的仓库根目录运行，将 `API_IMAGE` 替换为实际镜像仓库地址与不可变版本标签：
+当前已发布的服务器镜像为 `jojoshine/custom-wechat-api:11cf27e`（linux/amd64）。后续版本在开发机仓库根目录构建，并使用新的不可变版本标签：
 
 ```bash
-API_IMAGE=registry.example.com/team/custom-wechat-api:2026-09-29
-docker buildx build --platform linux/amd64,linux/arm64 \
-  -f apps/api/Dockerfile -t "$API_IMAGE" --push .
+API_IMAGE=jojoshine/custom-wechat-api:<new-version>
+docker build --platform linux/amd64 -f apps/api/Dockerfile -t "$API_IMAGE" .
+docker push "$API_IMAGE"
 ```
 
-镜像不包含 `.env` 文件。若镜像仓库不支持多架构发布，按服务器架构只构建 `linux/amd64` 或 `linux/arm64`。构建前须登录镜像仓库。
+镜像不包含 `.env` 文件。当前服务器为 x86_64，因此镜像使用 `linux/amd64`。构建前须登录镜像仓库。
 
 ## 服务器首次启动
 
@@ -25,7 +25,9 @@ chmod 600 .env.production
 
 `API_IMAGE` 必须是已推送的完整镜像名。`POSTGRES_PASSWORD` 建议用 `openssl rand -hex 24` 生成，只使用 URL 安全字符，因为 Compose 会用它拼接 `DATABASE_URL`。`JWT_SECRET` 另行生成，不要复用数据库密码。填写小程序、OSS 和支付参数；PEM 可按现有 API 配置格式写成一行并用字面量 `\n` 表示换行。`WEBVIEW_APPS_JSON` 需换成实际上线的 HTTPS 网页应用配置；`[]` 表示暂不开放网页应用。
 
-支付回调尚未通过公网验证时，保持 `WECHAT_PAY_MCH_ID` 为空。回调、商户号与所有密钥就绪后再填写商户号并重建 API 容器。
+若镜像仓库为私有仓库，先在服务器执行 `docker login -u jojoshine`，使用 Docker Hub 访问令牌登录，再执行下面的拉取命令。访问令牌只输入到 Docker 登录提示中，不写进 `.env.production`。
+
+示例文件默认将 `WECHAT_PAY_MCH_ID` 留空；如使用已填入商户号的本机 `.env.production`，API 启动时会加载支付模块。开放支付入口前，先验证公网代理和两个通知地址。若先以空商户号启动，填入商户号后执行 `up -d --force-recreate api` 使配置生效。
 
 ```bash
 docker compose --env-file .env.production -f docker-compose.prod.yml pull

@@ -1,6 +1,6 @@
 # 生产环境 Docker 部署
 
-仓库根目录的 `docker-compose.prod.yml` 包含 PostgreSQL、一次性 Prisma 迁移任务和 NestJS API。API 与迁移任务使用同一个镜像；数据库数据保存在 `postgres_data` 卷。服务器无需安装 Node.js 或 pnpm。
+仓库根目录的 `docker-compose.prod.yml` 只包含一次性 Prisma 迁移任务和 NestJS API，两者使用同一个镜像，并连接服务器宿主机上已有的 PostgreSQL。Compose 不创建数据库容器或数据卷。服务器无需安装 Node.js 或 pnpm。
 
 ## 构建与发布镜像
 
@@ -23,7 +23,9 @@ cp .env.production.example .env.production
 chmod 600 .env.production
 ```
 
-`API_IMAGE` 必须是已推送的完整镜像名。`POSTGRES_PASSWORD` 建议用 `openssl rand -hex 24` 生成，只使用 URL 安全字符，因为 Compose 会用它拼接 `DATABASE_URL`。`JWT_SECRET` 另行生成，不要复用数据库密码。填写小程序、OSS 和支付参数；PEM 可按现有 API 配置格式写成一行并用字面量 `\n` 表示换行。`WEBVIEW_APPS_JSON` 需换成实际上线的 HTTPS 网页应用配置；`[]` 表示暂不开放网页应用。
+`API_IMAGE` 必须是已推送的完整镜像名。`DATABASE_URL` 填写现有 PostgreSQL 的连接串，例如 `postgresql://app_user:URL_ENCODED_PASSWORD@host.docker.internal:5432/app_db`；密码中的特殊字符须按 URL 规则编码。容器里的 `localhost` 指容器自身，不能用来连接宿主机数据库。Compose 已把 `host.docker.internal` 映射到 Linux 宿主机网关；宿主机 PostgreSQL 还需监听该网关可达的地址，并允许 Docker 网桥来源连接。迁移会作用于连接串指定的数据库和 schema。
+
+`JWT_SECRET` 使用独立的随机值。填写小程序、OSS 和支付参数；PEM 可按现有 API 配置格式写成一行并用字面量 `\n` 表示换行。`WEBVIEW_APPS_JSON` 需换成实际上线的 HTTPS 网页应用配置；`[]` 表示暂不开放网页应用。本机已准备的 `.env.production` 除 `DATABASE_URL` 外已填入现有配置，可安全传到服务器后补上数据库连接串。
 
 若镜像仓库为私有仓库，先在服务器执行 `docker login -u jojoshine`，使用 Docker Hub 访问令牌登录，再执行下面的拉取命令。访问令牌只输入到 Docker 登录提示中，不写进 `.env.production`。
 
@@ -35,7 +37,7 @@ docker compose --env-file .env.production -f docker-compose.prod.yml up -d
 docker compose --env-file .env.production -f docker-compose.prod.yml ps
 ```
 
-Compose 会等待数据库健康、迁移成功后启动 API。数据库不对宿主机开放端口；API 默认只监听宿主机 `127.0.0.1:3100`。不要删除 `postgres_data` 卷，否则会丢失生产数据。更新镜像标签后重复 `pull` 和 `up -d`，迁移会在新镜像启动时执行。
+Compose 会先连接现有数据库执行迁移，成功后启动 API；若数据库不可达或迁移失败，API 不会启动。API 默认只监听宿主机 `127.0.0.1:3100`。更新镜像标签后重复 `pull` 和 `up -d`，迁移会在新镜像启动时执行。
 
 ## HTTPS 反向代理
 

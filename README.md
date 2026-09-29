@@ -78,13 +78,15 @@ API 启动后每分钟补查待定或到期支付、待定退款并重投业务�
 
 ## 检查与打包
 
+服务器拉取镜像部署时，使用 [`docker-compose.prod.yml`](docker-compose.prod.yml)；镜像发布、生产环境变量、数据库迁移和 `/custom_wechat_app` 反向代理配置见[生产环境 Docker 部署](docs/production-deployment.md)。
+
 第四阶段在隔离工作树按[复制指引](docs/template-copy-guide.md)演练：使用 nvm Node 22.23.2 和现有单个本地测试数据库，锁文件安装、`pnpm test`（API 100 项、小程序 26 项）、`pnpm typecheck`、`pnpm build`、演示开关启用构建、`pnpm test:container` 均通过；Prisma 的 7 个迁移为最新状态。默认小程序产物不含支付演示页，启用构建包含该页。此验收不代表微信或 OSS 真实环境已联通。
 
 - `TEST_DATABASE_URL=postgresql://template:localdev@localhost:5433/template pnpm test`、`pnpm typecheck`、`pnpm build`：仓库检查；测试 URL 指向现有且完成迁移的本地数据库，缺少它时整仓测试会直接失败。
 - `pnpm test:container`：构建 API 镜像并启动临时容器，检查 `/health`。
 - `docker build -f apps/api/Dockerfile -t wechat-template-api .`：构建 API 生产镜像。
 
-部署前在与目标 PostgreSQL 可连接的环境执行 `cd apps/api && pnpm prisma migrate deploy`。镜像只运行 API，不在每次启动时自动迁移数据库。生产环境通过容器环境变量注入 `DATABASE_URL`、`JWT_SECRET`、`WECHAT_APP_ID`、`WECHAT_APP_SECRET`、`OSS_*` 及启用支付时所需的 `WECHAT_PAY_*`；不要提交真实密钥。
+使用生产 Compose 时，数据库健康后会先运行镜像内的 Prisma 迁移任务，成功后再启动 API；直接运行镜像时仍须自行执行迁移。生产环境通过容器环境变量注入 `DATABASE_URL`、`JWT_SECRET`、`WECHAT_APP_ID`、`WECHAT_APP_SECRET`、`OSS_*` 及启用支付时所需的 `WECHAT_PAY_*`；不要提交真实密钥。
 
 **联调边界：**本地开发者工具模拟器配合 Docker API 可验证微信登录、资料更新和 OSS 图片流程；构建与自动测试仍使用不含真实密钥的配置。手机号授权、真机访问、支付退款和线上回调需要各自的权限、域名及商户配置后单独验收。
 

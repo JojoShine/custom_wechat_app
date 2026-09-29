@@ -15,7 +15,7 @@ COPY packages/contracts packages/contracts
 RUN pnpm --filter @template/api prisma generate \
  && pnpm --filter @template/contracts build \
  && pnpm --filter @template/api build \
- && pnpm --filter @template/api deploy --prod /prod/api
+ && pnpm --filter @template/api deploy /prod/api
 
 FROM base
 WORKDIR /app

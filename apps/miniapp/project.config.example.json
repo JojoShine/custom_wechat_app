@@ -1,0 +1,9 @@
+{
+  "miniprogramRoot": "./dist",
+  "projectname": "replace-with-project-name",
+  "appid": "touristappid",
+  "setting": {
+    "urlCheck": true
+  },
+  "compileType": "miniprogram"
+}

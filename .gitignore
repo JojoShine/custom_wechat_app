@@ -8,3 +8,4 @@ apps/miniapp/dist/
 apps/miniapp/.swc/
 apps/api/generated/
 apps/api/src/generated/
+apps/miniapp/project.config.json

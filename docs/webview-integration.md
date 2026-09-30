@@ -4,7 +4,7 @@
 
 ## 登记网页应用
 
-在 API 环境变量中设置 `WEBVIEW_APPS_JSON`。每个应用包含唯一 `appId`、展示名 `name`、完整入口 `entryUrl` 和该入口的精确网页来源 `origin`。小程序只展示此列表，不能指定任意 URL。
+在 API 环境变量中设置 `WEBVIEW_APPS_JSON`，变量位置和密钥边界见[配置指南](configuration.md)。每个应用包含唯一 `appId`、展示名 `name`、完整入口 `entryUrl` 和该入口的精确网页来源 `origin`。小程序只展示此列表，不能指定任意 URL。
 
 ```env
 WEBVIEW_APPS_JSON=[{"appId":"demo","name":"示例网页","entryUrl":"http://127.0.0.1:3100/webview/demo","origin":"http://127.0.0.1:3100"}]
@@ -32,7 +32,7 @@ HTTP 只允许本地 loopback 地址。正式环境改用 HTTPS 网页地址，�
 
 ## 本地 Docker 与开发者工具
 
-使用现有 `compose.yaml` 的**同一个** PostgreSQL 数据库，不创建第二个库。先用 nvm Node 22.23.2 完成安装和 Prisma 生成，在当前数据库运行 `pnpm --filter @template/api prisma migrate deploy`。`apps/api/.env` 中填写已有本地测试配置和上面的 `WEBVIEW_APPS_JSON`，保持真实微信/OSS 凭证只在本地环境文件中。
+使用现有 `compose.yaml` 的**同一个** PostgreSQL 数据库，不创建第二个库。先用 nvm Node 22.23.2 完成安装和 Prisma 生成，在 `apps/api` 中运行 `pnpm prisma migrate deploy`。`apps/api/.env` 中填写本地配置和上面的 `WEBVIEW_APPS_JSON`，保持真实微信/OSS 凭证只在本地环境文件中。
 
 ```bash
 docker compose up -d db

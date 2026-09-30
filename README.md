@@ -20,9 +20,9 @@
 ```bash
 pnpm install --frozen-lockfile
 docker compose up -d db
-cp apps/api/.env.example apps/api/.env
-cp apps/miniapp/.env.example apps/miniapp/.env
-cp apps/miniapp/project.config.example.json apps/miniapp/project.config.json
+cp -n apps/api/.env.example apps/api/.env
+cp -n apps/miniapp/.env.example apps/miniapp/.env
+cp -n apps/miniapp/project.config.example.json apps/miniapp/project.config.json
 ```
 
 在 `apps/api/.env` 填写当前小程序的 AppID、AppSecret、JWT 密钥和所需服务配置；在 `apps/miniapp/project.config.json` 填写**同一个 AppID**，并在 `apps/miniapp/.env` 配置 API 地址。真实密钥只放服务端环境，三个本地配置文件均不提交。继续按[开发指南](docs/development-guide.md)执行 Prisma 迁移、构建和微信开发者工具导入。

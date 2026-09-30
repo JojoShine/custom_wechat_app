@@ -40,6 +40,6 @@
 
 ## 生产 Compose
 
-`.env.production.example` 还包含 `API_IMAGE`（完整镜像地址）与 `API_PORT`（宿主机回环端口）。生产 `docker-compose.prod.yml` 使用服务器已有的 PostgreSQL，不创建数据库容器；若数据库在宿主机，连接串主机可用 `host.docker.internal`，并确保 PostgreSQL 监听和访问规则允许 Docker 网桥连接。首次启动前先核对数据库连接，再由 Compose 的 `migrate` 服务应用迁移。
+`.env.production.example` 还包含 `COMPOSE_PROJECT_NAME`（复制项目自己的 Compose 名称）、`API_IMAGE`（完整镜像地址）与 `API_PORT`（宿主机回环端口）。生产 `docker-compose.prod.yml` 使用服务器已有的 PostgreSQL，不创建数据库容器；若数据库在宿主机，连接串主机可用 `host.docker.internal`，并确保 PostgreSQL 监听和访问规则允许 Docker 网桥连接。首次启动前先核对数据库连接，再由 Compose 的 `migrate` 服务应用迁移。已有部署升级时保留原 Compose 项目名，以免创建另一组容器。
 
 镜像仓库发布与部署的 GitHub 变量、Secrets 见[部署指南](deployment.md)。

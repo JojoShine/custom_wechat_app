@@ -2,6 +2,8 @@
 
 生产环境运行 `docker-compose.prod.yml` 中的一次性 Prisma 迁移任务和 NestJS API。两者使用同一镜像，并连接服务器上已有的 PostgreSQL；Compose 不创建生产数据库。服务器无需安装 Node.js 或 pnpm。镜像可由本地、GitHub Actions 或团队自己的构建平台生成；发布到哪个仓库由复制项目配置。
 
+本地 `compose.yaml` 负责启动开发数据库；`apps/api/prisma/migrations` 和 `migrate deploy` 负责初始化及升级表结构；`scripts/test-container.mjs` 检查镜像健康；`apps/api/scripts/reconcile-date.mjs` 用于按日期重跑对账；`scripts/deploy-production.sh` 是可选远程部署入口。这些流程随模板保留。
+
 ## 构建镜像
 
 从仓库根目录构建，Dockerfile 位于 `apps/api/Dockerfile`：
@@ -14,7 +16,7 @@ docker build --platform linux/amd64 -f apps/api/Dockerfile -t example/custom-wec
 
 ## 服务器首次配置
 
-将 `docker-compose.prod.yml` 与 `.env.production.example` 放在服务器同一目录，把示例复制为 `.env.production` 并设为仅部署账号可读。填写完整 `API_IMAGE`、`DATABASE_URL`、JWT、小程序、OSS、WebView，以及实际启用支付时的商户配置；变量逐项解释见[配置指南](configuration.md)。不要把真实值提交仓库或放进镜像。
+将 `docker-compose.prod.yml` 与 `.env.production.example` 放在服务器同一目录，把示例复制为 `.env.production` 并设为仅部署账号可读。新项目填写自己的 `COMPOSE_PROJECT_NAME`、完整 `API_IMAGE`、`DATABASE_URL`、JWT、小程序、OSS、WebView，以及实际启用支付时的商户配置；已有部署沿用原 Compose 项目名，避免更新时新建一组容器。变量逐项解释见[配置指南](configuration.md)。不要把真实值提交仓库或放进镜像。
 
 数据库在宿主机时，连接串可使用 `host.docker.internal`，例如 `postgresql://app_user:URL_ENCODED_PASSWORD@host.docker.internal:5432/app_db`。密码特殊字符需 URL 编码。容器内 `localhost` 指容器自己；宿主机 PostgreSQL 必须监听 Docker 网桥可达地址，并允许该来源连接。迁移作用于 `DATABASE_URL` 指定的数据库。
 

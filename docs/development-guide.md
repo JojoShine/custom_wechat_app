@@ -7,9 +7,9 @@
 从模板创建独立仓库，不复制 `.env`、本地数据库或构建产物。修改根 `package.json` 的项目名、`apps/miniapp/config/index.ts` 的 `projectName`、`apps/miniapp/src/app.config.ts` 的导航栏文案，以及门户和分享标题。`@template/api`、`@template/miniapp`、`@template/contracts` 是工作区包名，可先保留；如改名，需同步改所有 import、脚本、Dockerfile 和锁文件。
 
 ```bash
-cp apps/api/.env.example apps/api/.env
-cp apps/miniapp/.env.example apps/miniapp/.env
-cp apps/miniapp/project.config.example.json apps/miniapp/project.config.json
+cp -n apps/api/.env.example apps/api/.env
+cp -n apps/miniapp/.env.example apps/miniapp/.env
+cp -n apps/miniapp/project.config.example.json apps/miniapp/project.config.json
 pnpm install --frozen-lockfile
 docker compose up -d db
 ```
@@ -31,7 +31,7 @@ node --env-file=.env dist/main.js
 
 后五行在 `apps/api` 中运行。确认 `http://localhost:3000/health` 返回 `{"status":"ok"}`，实际端口取决于 `PORT`。Prisma 配置 `apps/api/prisma7.config.ts` 读取该目录的 `.env`。生产只用 `migrate deploy` 应用已提交迁移，不用 `db push` 覆盖历史。
 
-新增业务表时编辑 `apps/api/prisma/schema.prisma`，在开发库运行 `cd apps/api && pnpm prisma migrate dev --name <业务变更名>`，提交新迁移，再运行 `pnpm prisma generate`。已执行的迁移不修改、不删除；部署时由生产 Compose 的 `migrate` 服务先运行迁移，成功后再启动 API。
+新增业务表时编辑 `apps/api/prisma/schema.prisma`，在 `apps/api` 目录运行 `pnpm prisma migrate dev --name add_business_resource`（迁移名按实际功能替换），提交新迁移，再运行 `pnpm prisma generate`。已执行的迁移不修改、不删除；部署时由生产 Compose 的 `migrate` 服务先运行迁移，成功后再启动 API。
 
 ## 3. 开发 NestJS 业务模块
 

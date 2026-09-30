@@ -1,3 +1,5 @@
+name: ${COMPOSE_PROJECT_NAME:-custom-wechat-app-prod}
+
 services:
   migrate:
     image: ${API_IMAGE:?Set API_IMAGE in .env.production}

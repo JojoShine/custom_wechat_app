@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Install alongside the server's Compose file and .env.production.
+# Usage: bash deploy-production.sh docker.io/owner/repository:<commit-sha> /absolute/deploy/dir
+# The server pulls a published image; this script never builds or fetches source.
 set -euo pipefail
 
 image_ref=${1:?image reference required}

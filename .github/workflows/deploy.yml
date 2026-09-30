@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: Commit SHA of a successful CI image on Docker Hub
+        description: Commit SHA of a successfully published API image
         required: true
         type: string
 
@@ -14,7 +14,8 @@ jobs:
     environment: production
     env:
       IMAGE_TAG: ${{ inputs.image_tag }}
-      DOCKERHUB_IMAGE: jojoshine/custom-wechat-api
+      API_IMAGE_REGISTRY: ${{ vars.API_IMAGE_REGISTRY || 'docker.io' }}
+      API_IMAGE_REPOSITORY: ${{ vars.API_IMAGE_REPOSITORY }}
       DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
       DEPLOY_USER: ${{ vars.DEPLOY_USER }}
       DEPLOY_DIR: ${{ vars.DEPLOY_DIR }}
@@ -25,7 +26,8 @@ jobs:
       - name: Check deployment configuration
         run: |
           [[ "$IMAGE_TAG" =~ ^[0-9a-f]{40}$ ]]
-          [[ "$DOCKERHUB_IMAGE" =~ ^[A-Za-z0-9._/-]+$ ]]
+          [[ "$API_IMAGE_REGISTRY" =~ ^[A-Za-z0-9.-]+(:[0-9]+)?$ ]]
+          [[ "$API_IMAGE_REPOSITORY" =~ ^[A-Za-z0-9._/-]+$ ]]
           [[ "$DEPLOY_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
           [[ "$DEPLOY_USER" =~ ^[A-Za-z0-9_-]+$ ]]
           [[ "$DEPLOY_DIR" =~ ^/[A-Za-z0-9/_-]+$ ]]
@@ -41,7 +43,7 @@ jobs:
           chmod 600 ~/.ssh/known_hosts
       - name: Deploy published image
         run: |
-          image_ref="$DOCKERHUB_IMAGE:$IMAGE_TAG"
+          image_ref="$API_IMAGE_REGISTRY/$API_IMAGE_REPOSITORY:$IMAGE_TAG"
           target="$DEPLOY_USER@$DEPLOY_HOST"
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes docker-compose.prod.yml "$target:$DEPLOY_DIR/docker-compose.prod.yml"
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes "$target" "bash -s -- '$image_ref' '$DEPLOY_DIR'" < scripts/deploy-production.sh

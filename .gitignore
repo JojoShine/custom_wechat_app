@@ -4,6 +4,7 @@ dist/
 .env.*
 !.env.example
 !.env.production.example
+!.env.local.example
 apps/miniapp/dist/
 apps/miniapp/.swc/
 apps/api/generated/

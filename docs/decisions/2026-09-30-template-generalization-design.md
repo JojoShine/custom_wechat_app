@@ -1,6 +1,6 @@
 # 通用小程序模板整理设计
 
-> 2026-10-01 更新：本文中可选 GitHub 远程部署和通用镜像仓库的设计已被后续决定替代。正式镜像统一由 GitHub Actions 构建并推送 Docker Hub；CD 脚本、Compose 和环境配置由各服务器管理，操作以 [部署指南](../deployment.md) 为准。
+> 2026-10-01 更新：本文中可选 GitHub 远程部署和通用镜像仓库的设计已被后续决定替代。正式镜像统一由 GitHub Actions 构建并推送 Docker Hub；当前由管理员在 ECS 直接拉取镜像并用 Compose 部署，自动 CD 暂不实施；Compose 和环境配置由各服务器管理，操作以 [部署指南](../deployment.md) 为准。
 
 ## 目标与边界
 
@@ -43,14 +43,14 @@
 
 ## 脚本与自动化
 
-保留 `compose.yaml` 本地数据库、Prisma 迁移命令、`scripts/require-test-database.mjs`、`scripts/check-workspace.mjs`、`scripts/test-container.mjs`、`apps/api/scripts/reconcile-date.mjs`、API Dockerfile、生产 Compose 与必要的部署脚本。按新文档调整 `check-workspace` 的文档断言及容器检查中的项目专属值，保持现有校验目标。独立的 `apps/api/scripts/check-user-unique.mjs` 和 `test:db` 属于早期单项验证：先确认常规测试或迁移约束覆盖，再决定删除；若删除，补上必要的常规测试断言，不降低数据库约束验证。
+保留 `docker/local/database.compose.yaml` 本地数据库、Prisma 迁移命令、`scripts/require-test-database.mjs`、`scripts/check-workspace.mjs`、`apps/api/scripts/reconcile-date.mjs`、API Dockerfile、生产 Compose 与必要的部署脚本。按新文档调整 `check-workspace` 的文档断言，保持现有校验目标。独立的 `apps/api/scripts/check-user-unique.mjs` 和 `test:db` 属于早期单项验证：先确认常规测试或迁移约束覆盖，再决定删除；若删除，补上必要的常规测试断言，不降低数据库约束验证。
 
-GitHub Actions 默认运行测试、类型检查和构建。镜像发布、远程部署保留为可选流程：镜像仓库、平台架构、服务器地址和目录从复制项目的变量或 Secrets 取得；未配置时不发布、不部署。修正发布任务引用的 Dockerfile 路径为 `apps/api/Dockerfile`。生产环境示例中的镜像、回调域名与端口均使用可填写示例，不携带现有个人部署值；Compose 继续依赖已有 PostgreSQL，不另建生产数据库容器。部署脚本必须继续执行拉取、迁移、启动与健康检查，且不得把密钥写进镜像。
+GitHub Actions 默认运行测试、类型检查和构建。镜像发布、远程部署保留为可选流程：镜像仓库、平台架构、服务器地址和目录从复制项目的变量或 Secrets 取得；未配置时不发布、不部署。修正发布任务引用的 Dockerfile 路径为 `docker/build/Dockerfile`。生产环境示例中的镜像、回调域名与端口均使用可填写示例，不携带现有个人部署值；Compose 继续依赖已有 PostgreSQL，不另建生产数据库容器。部署脚本必须继续执行拉取、迁移、启动与健康检查，且不得把密钥写进镜像。
 
 ## 验证与验收
 
 - 文档链接、文件路径、命令和环境变量与实际仓库一致；从 README 能找到开发、配置、支付、原生能力、WebView 和部署指南。
 - 四个业务扩展目录进入 Git，复制仓库后存在；指南中没有提到不存在的目录或接口。
 - 默认 CI 不会向个人 Docker Hub、ACR 或服务器发布。配置可选发布后，构建上下文与 Dockerfile 路径正确。
-- 使用现有本地 PostgreSQL 测试库执行测试与迁移，随后运行 `pnpm typecheck`、`pnpm build`；必要时执行 `pnpm test:container` 验证 API 镜像健康。
+- 使用现有本地 PostgreSQL 测试库执行测试与迁移，随后运行 `pnpm typecheck`、`pnpm build`；必要时使用统一 Compose 拉取 CI 镜像并验证 API 健康。
 - `git diff` 只包含本次模板整理相关文件，不包含密钥、现有页面视觉改动、构建产物或历史迁移改写。

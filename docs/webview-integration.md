@@ -32,15 +32,7 @@ HTTP 只允许本地 loopback 地址。正式环境改用 HTTPS 网页地址，�
 
 ## 本地 Docker 与开发者工具
 
-使用现有 `compose.yaml` 的**同一个** PostgreSQL 数据库，不创建第二个库。先用 nvm Node 22.23.2 完成安装和 Prisma 生成，在 `apps/api` 中运行 `pnpm prisma migrate deploy`。`apps/api/.env` 中填写本地配置和上面的 `WEBVIEW_APPS_JSON`，保持真实微信/OSS 凭证只在本地环境文件中。
-
-```bash
-docker compose up -d db
-docker build -f apps/api/Dockerfile -t wechat-template-api:webview .
-docker run --rm -p 127.0.0.1:3100:3000 --env-file apps/api/.env \
-  -e DATABASE_URL=postgresql://template:localdev@host.docker.internal:5433/template \
-  wechat-template-api:webview
-```
+按 [Docker 本地运行说明](../docker/README.md)启动现有本地数据库，使用统一的 `docker/compose.yaml` 拉取 CI 镜像并运行 API。在 `docker/local/.env.local` 填写本地配置及上面的 `WEBVIEW_APPS_JSON`。数据库与宿主机调试共用，不创建第二个库；修改运行配置后重新执行 up。默认端口为 3100，可通过该文件的 `API_PORT` 调整。
 
 另一个终端检查 `http://127.0.0.1:3100/health`、`http://127.0.0.1:3100/webview/apps` 和 `http://127.0.0.1:3100/webview/demo`。在 `apps/miniapp/.env` 设置 `TARO_APP_API_BASE_URL=http://127.0.0.1:3100`，重新构建并在微信开发者工具导入 `apps/miniapp/dist`。仅对本地模拟器关闭域名校验，从首页打开“网页应用”，验证登录返回、无坐标打开、携带模拟坐标打开、票据兑换及资料展示。可在浏览器直接访问 `/webview/demo` 检查缺票据提示；该页面不会为手写 URL 签发票据。
 

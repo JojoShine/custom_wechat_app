@@ -1,26 +1,26 @@
-name: ${COMPOSE_PROJECT_NAME:-custom-wechat-app-prod}
+name: ${COMPOSE_PROJECT_NAME:?Set COMPOSE_PROJECT_NAME in the selected env file}
 
 services:
   migrate:
-    image: ${API_IMAGE:?Set API_IMAGE in .env.production}
-    env_file: .env.production
+    image: ${API_IMAGE:?Set API_IMAGE in the selected env file}
+    env_file: ${APP_ENV_FILE:?Set APP_ENV_FILE in the selected env file}
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     environment:
-      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env.production}
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in the selected env file}
     command: ['./node_modules/.bin/prisma', 'migrate', 'deploy', '--config', 'prisma7.config.ts']
     restart: 'no'
 
   api:
-    image: ${API_IMAGE:?Set API_IMAGE in .env.production}
-    env_file: .env.production
+    image: ${API_IMAGE:?Set API_IMAGE in the selected env file}
+    env_file: ${APP_ENV_FILE:?Set APP_ENV_FILE in the selected env file}
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     environment:
-      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env.production}
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in the selected env file}
       PORT: '3000'
     ports:
-      - '127.0.0.1:${API_PORT:-3101}:3000'
+      - '127.0.0.1:${API_PORT:-3100}:3000'
     depends_on:
       migrate:
         condition: service_completed_successfully

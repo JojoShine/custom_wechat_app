@@ -11,14 +11,16 @@ cp -n apps/api/.env.example apps/api/.env
 cp -n apps/miniapp/.env.example apps/miniapp/.env
 cp -n apps/miniapp/project.config.example.json apps/miniapp/project.config.json
 pnpm install --frozen-lockfile
-docker compose up -d db
+docker compose --project-directory . -f docker/local/database.compose.yaml up -d --wait db
 ```
 
 在本地 `apps/miniapp/project.config.json` 填新场景的 AppID，让 `apps/api/.env` 的 `WECHAT_APP_ID` 与其一致；示例中的 `touristappid` 只用于占位。`apps/miniapp/.env` 的 `TARO_APP_API_BASE_URL` 指向开发者工具可访问的 API。支付未接入时保持 `WECHAT_PAY_MCH_ID` 为空。完整变量、公开配置和域名要求见[配置指南](configuration.md)。不要提交这三个本地文件。
 
 ## 2. 启动 API 与管理数据库
 
-先用 nvm 选择 Node.js 22.23.2 和 pnpm 8.9.2。保留 `compose.yaml` 提供的单个本地 PostgreSQL；测试也使用已迁移的现有本地库，不为复制演练建第二个库。
+容器联调直接按 [Docker 说明](../docker/README.md)拉取 CI 的指定 SHA 镜像并启动本地 Compose，默认 API 端口为 3100。下面保留宿主机运行方式；选择一种 API 运行方式即可。
+
+先用 nvm 选择 Node.js 22.23.2 和 pnpm 8.9.2。保留 `docker/local/database.compose.yaml` 提供的单个本地 PostgreSQL；测试也使用已迁移的现有本地库，不为复制演练建第二个库。
 
 ```bash
 pnpm --filter @template/contracts build
@@ -67,9 +69,8 @@ pnpm --filter @template/miniapp build:weapp
 TEST_DATABASE_URL=postgresql://template:localdev@localhost:5433/template pnpm test
 pnpm typecheck
 pnpm build
-pnpm test:container
 ```
 
-`pnpm test` 未设置 `TEST_DATABASE_URL` 时会失败，避免数据库测试被静默跳过。`test:container` 构建 API 镜像并检查 `/health`；需要 Docker。按实际场景再验证微信登录、OSS、WebView、支付与退款，不把模拟器或受控测试当作真实服务联通证据。提交前检查 `git status`，不得包含 `.env`、真实 AppID 的本地项目配置、密钥、构建产物和数据库数据。
+`pnpm test` 未设置 `TEST_DATABASE_URL` 时会失败，避免数据库测试被静默跳过。镜像联调使用 [Docker 本地 Compose](../docker/README.md)，持续运行 API、迁移任务和同一个数据库。按实际场景再验证微信登录、OSS、WebView、支付与退款，不把模拟器或受控测试当作真实服务联通证据。提交前检查 `git status`，不得包含 `.env`、真实 AppID 的本地项目配置、密钥、构建产物和数据库数据。
 
 生产镜像、Compose、迁移与可选 CI 发布见[部署指南](deployment.md)。

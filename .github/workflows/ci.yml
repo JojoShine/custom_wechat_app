@@ -1,5 +1,8 @@
 name: CI
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     branches: [master]
@@ -57,7 +60,9 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./apps/api/Dockerfile
-          platforms: ${{ vars.API_IMAGE_PLATFORM || 'linux/amd64' }}
+          file: ./docker/build/Dockerfile
+          platforms: ${{ vars.API_IMAGE_PLATFORM || 'linux/amd64,linux/arm64' }}
           push: true
           tags: docker.io/${{ vars.API_IMAGE_REPOSITORY }}:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}

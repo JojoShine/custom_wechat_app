@@ -4,6 +4,12 @@
 
 CI 自动执行，部署由管理员操作。暂不启用自动 CD、服务器轮询、SMTP 告警或 Coolify。ECS 不需要访问 GitHub、拉取源码或安装 Node.js/Python；只需 Docker Engine、Compose v2，以及到镜像仓库、已有数据库和外部服务的网络连接。日常开发在本地运行源码；部署联调使用 CI 镜像，本地镜像构建仅作为排查手段。
 
+## 本地与服务器的关系
+
+两端使用同一个完整 SHA 镜像标签、同一份 `docker/compose.yaml`；本地通过 `.env.local` 提供运行参数，服务器通过 `.env.production` 提供运行参数。切换环境无需修改 Compose 或重新构建镜像，数据库连接、宿主机端口、密钥和回调地址分别配置。
+
+同一标签包含同一提交构建的 amd64、arm64 镜像：Apple Silicon Mac 自动拉取 arm64，当前 x86 ECS 自动拉取 amd64。因此版本一致，但不同架构的二进制镜像及摘要不同。具体对照和本地命令见 [Docker 统一运行说明](../docker/README.md#同一版本不同环境配置)。
+
 ## 1. 首次配置 GitHub 构建
 
 在 GitHub 仓库 Settings → Secrets and variables → Actions 配置：

@@ -16,6 +16,23 @@ docker/
 
 API 使用同一份 Compose、同一个 CI 发布的完整 SHA 标签，只切换环境文件。CI 默认发布 amd64/arm64 双架构镜像，Docker 自动选择本机架构。私有仓库先执行 `docker login`；本机与服务器都需要能访问 Docker Hub。
 
+## 同一版本，不同环境配置
+
+本地验证通过后，服务器使用完全相同的 `API_IMAGE` 版本标签与 `compose.yaml`，无需为生产环境重新构建。环境差异由运行时的配置文件提供：
+
+| 项目 | 本地 Mac | ECS 服务器 |
+| --- | --- | --- |
+| 镜像版本 | 同一个完整提交 SHA 标签 | 同一个完整提交 SHA 标签 |
+| 应用 Compose | `docker/compose.yaml` | 同一文件复制为 `compose.yaml` |
+| 环境文件 | `docker/local/.env.local` | `.env.production` |
+| 自动选择的架构 | Apple Silicon 使用 arm64 | 当前 x86 ECS 使用 amd64 |
+| 数据库 | 现有本地 PostgreSQL | 现有生产 PostgreSQL |
+| 运行参数 | 本地端口、密钥、回调地址等 | 生产端口、密钥、回调地址等 |
+
+“同一个镜像”指同一个代码版本及其多架构发布标签。标签下的 amd64 和 arm64 镜像由同一提交构建，二进制内容和摘要不同，Docker 拉取时自动选择适合当前机器的一份。真实环境文件不包含在镜像中，也不在本地与生产之间直接复用。
+
+镜像地址中的 `docker.io/` 可以省略；`docker.io/用户名/仓库名:版本号` 与 `用户名/仓库名:版本号` 都指向 Docker Hub。文档保留此前缀以明确仓库来源。
+
 ## 本机运行
 
 以下命令在仓库根目录执行。首次复制配置，已有文件不覆盖：

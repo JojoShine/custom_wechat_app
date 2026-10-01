@@ -70,6 +70,7 @@ docker compose --project-directory . -f docker/local/database.compose.yaml up -d
 - [从后端到前端的应用开发指南](docs/development-guide.md)
 - [环境变量与微信/OSS 配置](docs/configuration.md)
 - [支付、退款和对账接入](docs/payment-integration.md)
+- [微信支付直连与服务商集成说明](docs/payment-modes.md)
 - [原生能力目录](docs/native-capabilities.md)
 - [WebView 接入](docs/webview-integration.md)
 - [Docker 文件目录与本地用法](docker/README.md)

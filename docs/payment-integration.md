@@ -2,6 +2,8 @@
 
 模板封装普通直连商户的微信支付 API v3、小程序调起参数、支付通知验签、主动查单、部分退款、退款通知与对账。业务模块仍负责商品元数据、服务端价格、业务订单、可购买与可退规则和履约。平台没有购物车、优惠券或多租户模型。
 
+直连与服务商的区别、参数准备及后续代码调整范围，见[微信支付模式集成说明](payment-modes.md)。当前仅支持直连，服务商模式尚未实现。
+
 ## 启用前配置
 
 在 API 环境配置 `WECHAT_PAY_MCH_ID`、`WECHAT_PAY_MERCHANT_SERIAL`、`WECHAT_PAY_MERCHANT_PRIVATE_KEY`、`WECHAT_PAY_API_V3_KEY`、`WECHAT_PAY_PUBLIC_KEY_ID`、`WECHAT_PAY_PUBLIC_KEY`，并让支付、退款通知 URL 指向本 API 的 `/payments/wechat/notify` 和 `/payments/wechat/refund-notify`。两条地址都必须是微信可访问的 HTTPS 地址。商户号留空时，`AppModule` 不加载支付模块；启用时须配齐全部参数。参见[配置指南](configuration.md)。

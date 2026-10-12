@@ -30,7 +30,7 @@ export default function Login(): JSX.Element {
   return <View className='login-page'>
     <View className='login-brand'>
       <Text className='login-brand-star'>★</Text>
-      <Text className='login-brand-name'>轻购实验室</Text>
+      <Text className='login-brand-name'>风物实验室</Text>
       <Text className='login-brand-index'>PLAYER 01</Text>
     </View>
 

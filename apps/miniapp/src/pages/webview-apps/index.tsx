@@ -60,7 +60,7 @@ export default function WebviewApps(): JSX.Element {
 
   return <View className='webapps-page'>
     <View className='webapps-hero'>
-      <Text className='webapps-kicker'>QINGGOU / WEB ACCESS</Text>
+      <Text className='webapps-kicker'>FENGWU / WEB ACCESS</Text>
       <Text className='webapps-title'>网页应用</Text>
       <Text className='webapps-subtitle'>从小程序安全进入已登记的网页</Text>
     </View>

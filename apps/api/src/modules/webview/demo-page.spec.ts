@@ -30,7 +30,7 @@ it('serves a self-contained H5 demo from the API', async () => {
     expect(response.status).toBe(200)
     expect(response.headers.get('content-type')).toContain('text/html')
     expect(response.headers.get('referrer-policy')).toBe('no-referrer')
-    expect(html).toContain('轻购实验室')
+    expect(html).toContain('风物实验室')
     expect(html).toContain('/webview/exchange')
     expect(html).toContain('/webview/me')
     expect(html).not.toMatch(/<script[^>]+src=/)

@@ -28,7 +28,7 @@ export default function NativeCapabilities(): JSX.Element {
   const [mediaStatus, setMediaStatus] = useState<Status>('')
   const [clipboard, setClipboard] = useState<string | null>(null)
   const [clipboardStatus, setClipboardStatus] = useState<Status>('')
-  const [writeText, setWriteText] = useState('轻购实验室')
+  const [writeText, setWriteText] = useState('风物实验室')
   const [device, setDevice] = useState<ReturnType<typeof deviceNetworkCapability.getDeviceSnapshot> | null>(null)
   const [network, setNetwork] = useState<NetworkSnapshot | null>(null)
   const [networkStatus, setNetworkStatus] = useState<Status>('')
@@ -67,7 +67,7 @@ export default function NativeCapabilities(): JSX.Element {
 
   return <View className='cap-modules'>
     <View className='cap-header'>
-      <Text className='cap-kicker'>QINGGOU / NATIVE</Text>
+      <Text className='cap-kicker'>FENGWU / NATIVE</Text>
       <Text className='cap-title'>原生能力</Text>
       <Text className='cap-subtitle'>点按操作，探索小程序原生能力</Text>
     </View>
@@ -133,7 +133,7 @@ export default function NativeCapabilities(): JSX.Element {
 
     <View className='cap-section'>
       <Text className='cap-heading'>06 / 分享好友</Text>
-      <Text className='cap-intro'>将轻购实验室分享给微信好友。</Text>
+      <Text className='cap-intro'>将风物实验室分享给微信好友。</Text>
       <Button className='cap-button cap-primary' openType='share'>分享给好友</Button>
     </View>
 

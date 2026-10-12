@@ -4,7 +4,7 @@ export const demoPage = `<!doctype html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
-  <title>轻购实验室 · 网页示例</title>
+  <title>风物实验室 · 网页示例</title>
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; min-height: 100vh; padding: 28px 20px 64px; background: #f8f5e9; color: #163d34; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; }
@@ -22,7 +22,7 @@ export const demoPage = `<!doctype html>
   </style>
 </head>
 <body>
-  <header><small>QINGGOU / WEB DEMO</small><h1>轻购实验室</h1><p>网页应用接入示例</p></header>
+  <header><small>FENGWU / WEB DEMO</small><h1>风物实验室</h1><p>网页应用接入示例</p></header>
   <section><h2>连接状态</h2><p id="status" role="status">正在检查入口…</p></section>
   <section><h2>用户资料</h2><div id="profile">等待票据兑换</div><img id="avatar" alt="用户头像"></section>
   <section><h2>本次位置</h2><p id="location">未携带位置</p></section>

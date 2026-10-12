@@ -9,7 +9,7 @@ export default defineAppConfig({
     }
   },
   window: {
-    navigationBarTitleText: '轻购实验室',
+    navigationBarTitleText: '风物实验室',
     navigationBarBackgroundColor: '#f8f5e9',
     navigationBarTextStyle: 'black'
   }

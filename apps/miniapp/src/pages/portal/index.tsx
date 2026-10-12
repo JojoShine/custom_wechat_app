@@ -1,6 +1,7 @@
 import { Button, Text, View } from '@tarojs/components'
 import Taro, { useShareAppMessage } from '@tarojs/taro'
 import NativeCapabilities from '../../components/native-capabilities'
+import { clipboardCapability } from '../../core/native/runtime'
 import { navigateProtected } from '../../core/navigation'
 import { PORTAL_PATH, PROFILE_PATH, WEBVIEW_APPS_PATH } from '../../core/navigation/routes'
 import { portalShare } from '../../core/share/portal'
@@ -18,18 +19,29 @@ export default function Portal(): JSX.Element {
 
   const openProfile = () => void navigateProtected(PROFILE_PATH)
 
+  async function copyContact(): Promise<void> {
+    const result = await clipboardCapability.writeClipboard('tbtparent')
+    void Taro.showToast({
+      title: result.status === 'ok' ? '微信号已复制' : '复制失败，请手动添加',
+      icon: result.status === 'ok' ? 'success' : 'none'
+    })
+  }
+
   return <View className='portal' style={{ paddingTop: `${statusBarHeight}px` }}>
     <View className='portal-content'>
       <View className='portal-header'>
         <Text className='portal-brand-star'>★</Text>
-        <Text className='portal-brand-name'>轻购实验室</Text>
-        <View className='portal-header-avatar portal-icon portal-icon-avatar' onClick={openProfile} />
+        <Text className='portal-brand-name'>风物实验室</Text>
       </View>
 
       <View className='portal-hero'>
         <Text className='portal-hero-title'>从这里开始</Text>
         <Text className='portal-hero-subtitle'>可复用的小程序能力</Text>
         <View className='portal-accent-line' />
+        <Button className='portal-hero-contact' onClick={() => void copyContact()}>
+          <Text>定制联系 · 微信：tbtparent</Text>
+          <Text className='portal-hero-contact-action'>复制</Text>
+        </Button>
       </View>
 
       <Button className='portal-login-card' onClick={openProfile}>

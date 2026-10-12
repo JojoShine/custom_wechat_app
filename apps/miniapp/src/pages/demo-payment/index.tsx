@@ -6,10 +6,19 @@ import { apiRequest } from '../../core/api/client'
 import { createPaymentFlow } from '../../core/payments/payment'
 import { recoverProtectedError } from '../../core/navigation/recover'
 import { DEMO_PAYMENT_PATH } from '../../core/navigation/routes'
+import './index.css'
 
 const path = DEMO_PAYMENT_PATH
 const flow = createPaymentFlow({ request: apiRequest, requestPayment: (params) => Taro.requestPayment(params) })
 const redirectTo = (url: string) => Taro.redirectTo({ url })
+const paymentLabels: Record<PaymentView['status'], string> = {
+  CREATING: '正在创建', PENDING: '等待支付确认', SUCCEEDED: '支付已确认',
+  CLOSED: '交易已关闭', FAILED: '支付失败', UNKNOWN: '结果待核实'
+}
+const refundLabels: Record<RefundView['status'], string> = {
+  REQUESTING: '正在申请', PROCESSING: '退款处理中', SUCCEEDED: '退款成功',
+  CLOSED: '退款已关闭', ABNORMAL: '退款异常', UNKNOWN: '结果待核实'
+}
 
 export default function DemoPayment(): JSX.Element {
   const [order, setOrder] = useState<DemoOrderView | null>(null)
@@ -66,15 +75,53 @@ export default function DemoPayment(): JSX.Element {
     } finally { setBusy(false) }
   }
 
-  return <View style={{ padding: '32px' }}>
-    <Text>支付联调演示</Text>
-    <View style={{ marginTop: '20px' }}><Text>固定测试商品：10 分</Text></View>
-    <Button disabled={busy} onClick={() => void purchase()}>创建订单并支付</Button>
-    {order ? <View><Text>业务订单：{order.id}，状态：{order.status}</Text></View> : null}
-    {payment ? <View><Text>支付状态：{payment.status}</Text></View> : null}
-    {refund ? <View><Text>退款状态：{refund.status}，金额：{refund.amountFen} 分</Text></View> : null}
-    {payment ? <Button disabled={busy} onClick={() => void refresh()}>刷新结果</Button> : null}
-    {order?.status === 'PAID' ? <Button disabled={busy} onClick={() => void requestRefund()}>申请 1 分退款</Button> : null}
-    {message ? <View><Text>{message}</Text></View> : null}
+  return <View className='demo-pay-page'>
+    <View className='demo-pay-hero'>
+      <Text className='demo-pay-kicker'>FENGWU / PAYMENT LAB</Text>
+      <Text className='demo-pay-title'>支付实验</Text>
+      <Text className='demo-pay-subtitle'>用一笔小额交易体验支付与退款流程</Text>
+      <View className='demo-pay-hero-mark'>✦</View>
+    </View>
+
+    <View className='demo-pay-card'>
+      <View className='demo-pay-card-heading'>
+        <Text className='demo-pay-section-index'>01 / 演示商品</Text>
+        <Text className='demo-pay-tag'>固定价格</Text>
+      </View>
+      <Text className='demo-pay-product-name'>{order?.productName ?? '支付联调商品'}</Text>
+      <View className='demo-pay-price-row'>
+        <Text className='demo-pay-price'><Text className='demo-pay-currency'>¥</Text>0.10</Text>
+        <Text className='demo-pay-price-note'>人民币 · 10 分</Text>
+      </View>
+      <Button className='demo-pay-button demo-pay-primary' loading={busy} disabled={busy} onClick={() => void purchase()}>
+        创建订单并支付
+      </Button>
+      <Text className='demo-pay-hint'>实际支付 ¥0.10，支付结果以服务端确认状态为准。</Text>
+    </View>
+
+    <View className='demo-pay-card'>
+      <Text className='demo-pay-section-index'>02 / 支付状态</Text>
+      <View className='demo-pay-status-row'>
+        <View className='demo-pay-status-dot' />
+        <Text className='demo-pay-status-title'>{payment ? paymentLabels[payment.status] : '尚未创建订单'}</Text>
+      </View>
+      <Text className='demo-pay-section-copy'>{payment ? '如状态仍待确认，可主动向服务端查询。' : '完成上方操作后，可在这里查看可信支付结果。'}</Text>
+      {order ? <View className='demo-pay-detail'><Text>业务订单</Text><Text selectable className='demo-pay-detail-value'>{order.id}</Text></View> : null}
+      {order ? <View className='demo-pay-detail'><Text>订单状态</Text><Text className='demo-pay-detail-value'>{order.status === 'PAID' ? '已支付' : '待支付'}</Text></View> : null}
+      {payment ? <Button className='demo-pay-button demo-pay-secondary' loading={busy} disabled={busy} onClick={() => void refresh()}>刷新支付结果</Button> : null}
+    </View>
+
+    <View className='demo-pay-card demo-pay-refund-card'>
+      <Text className='demo-pay-section-index'>03 / 退款体验</Text>
+      <Text className='demo-pay-section-title'>支付后可申请 1 分退款</Text>
+      <Text className='demo-pay-section-copy'>退款由服务端受理，最终结果以通知或查单为准。</Text>
+      {refund ? <View className='demo-pay-refund-state'><Text>{refundLabels[refund.status]}</Text><Text>{refund.amountFen} 分</Text></View> : null}
+      {order?.status === 'PAID'
+        ? <Button className='demo-pay-button demo-pay-refund-button' loading={busy} disabled={busy} onClick={() => void requestRefund()}>申请 1 分退款</Button>
+        : <Text className='demo-pay-locked'>支付确认后开放退款操作</Text>}
+    </View>
+
+    {message ? <View className='demo-pay-message'><Text>{message}</Text></View> : null}
+    <Text className='demo-pay-footer'>风物实验室 · 支付能力演示</Text>
   </View>
 }

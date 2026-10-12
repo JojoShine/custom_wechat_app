@@ -1,0 +1,33 @@
+.demo-pay-page { min-height: 100vh; box-sizing: border-box; padding: 32rpx 28rpx 90rpx; background: #f8f5e9; color: #163d34; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; }
+.demo-pay-hero { position: relative; overflow: hidden; padding: 34rpx 30rpx 42rpx; border: 4rpx solid #164b3c; border-radius: 8rpx; background: #b9e6f3; box-shadow: 8rpx 8rpx 0 #d9d3bd; }
+.demo-pay-kicker, .demo-pay-section-index { display: block; color: #175945; font-size: 21rpx; font-weight: 900; letter-spacing: 2rpx; }
+.demo-pay-title { display: block; margin-top: 12rpx; font-size: 60rpx; font-weight: 900; letter-spacing: 3rpx; }
+.demo-pay-subtitle { display: block; max-width: 510rpx; margin-top: 10rpx; font-size: 25rpx; font-weight: 700; line-height: 1.5; }
+.demo-pay-hero-mark { position: absolute; right: 20rpx; bottom: 8rpx; color: #f8c75b; font-size: 92rpx; line-height: 1; text-shadow: 5rpx 5rpx #164b3c; }
+.demo-pay-card { margin-top: 28rpx; padding: 28rpx; border: 4rpx solid #164b3c; border-radius: 8rpx; background: #fffbef; box-shadow: 8rpx 8rpx 0 #d9d3bd; }
+.demo-pay-card-heading, .demo-pay-price-row, .demo-pay-detail, .demo-pay-refund-state { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
+.demo-pay-tag { padding: 7rpx 12rpx; border: 3rpx solid #164b3c; background: #ffdc88; font-size: 19rpx; font-weight: 900; }
+.demo-pay-product-name { display: block; margin-top: 24rpx; font-size: 37rpx; font-weight: 900; }
+.demo-pay-price-row { align-items: baseline; margin: 16rpx 0 26rpx; padding-bottom: 22rpx; border-bottom: 3rpx dashed #bfd0c3; }
+.demo-pay-price { font-size: 72rpx; font-weight: 900; letter-spacing: 1rpx; line-height: 1; }
+.demo-pay-currency { margin-right: 4rpx; font-size: 38rpx; }
+.demo-pay-price-note { color: #52665e; font-size: 23rpx; font-weight: 800; }
+.demo-pay-button { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 88rpx; box-sizing: border-box; margin: 0; padding: 12rpx 20rpx; border: 4rpx solid #164b3c; border-radius: 6rpx; color: #111; font-size: 28rpx; font-weight: 900; line-height: 1.2; }
+.demo-pay-button::after { border: 0; }
+.demo-pay-button[disabled] { opacity: 1; background: #e8e4d8; color: #111; }
+.demo-pay-primary { background: #a8dfc0; box-shadow: 5rpx 5rpx 0 #123b33; }
+.demo-pay-secondary { margin-top: 24rpx; background: #fff7dc; box-shadow: 5rpx 5rpx 0 #d9d3bd; }
+.demo-pay-refund-button { margin-top: 24rpx; background: #ffdc88; box-shadow: 5rpx 5rpx 0 #d9d3bd; }
+.demo-pay-hint { display: block; margin-top: 22rpx; color: #60736a; font-size: 22rpx; line-height: 1.5; }
+.demo-pay-status-row { display: flex; align-items: center; gap: 14rpx; margin-top: 22rpx; }
+.demo-pay-status-dot { width: 18rpx; height: 18rpx; flex: none; border: 3rpx solid #164b3c; background: #f8c75b; }
+.demo-pay-status-title, .demo-pay-section-title { display: block; font-size: 34rpx; font-weight: 900; }
+.demo-pay-section-title { margin-top: 20rpx; }
+.demo-pay-section-copy { display: block; margin-top: 10rpx; color: #60736a; font-size: 24rpx; line-height: 1.5; }
+.demo-pay-detail { align-items: flex-start; margin-top: 18rpx; padding-top: 18rpx; border-top: 2rpx dashed #cbd8ca; color: #60736a; font-size: 23rpx; }
+.demo-pay-detail-value { max-width: 70%; color: #163d34; font-weight: 800; overflow-wrap: anywhere; text-align: right; }
+.demo-pay-refund-card { background: #fff5df; }
+.demo-pay-refund-state { margin-top: 22rpx; padding: 18rpx 20rpx; border: 3rpx solid #164b3c; background: #fffbef; font-size: 26rpx; font-weight: 900; }
+.demo-pay-locked { display: block; margin-top: 22rpx; padding: 20rpx; border: 3rpx dashed #a6b5a8; color: #60736a; font-size: 23rpx; font-weight: 800; text-align: center; }
+.demo-pay-message { margin-top: 28rpx; padding: 20rpx 22rpx; border: 3rpx solid #164b3c; background: #ecf5e7; font-size: 24rpx; font-weight: 800; line-height: 1.5; }
+.demo-pay-footer { display: block; margin-top: 42rpx; color: #678276; font-size: 21rpx; font-weight: 800; letter-spacing: 2rpx; text-align: center; }

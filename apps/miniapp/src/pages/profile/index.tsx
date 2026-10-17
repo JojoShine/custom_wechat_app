@@ -72,7 +72,7 @@ export default function Profile(): JSX.Element {
     <Text className='profile-title'>个人资料</Text>
     {profile ? <View className='profile-panel'>
       {profile.avatarUrl ? <Image className='profile-avatar' src={profile.avatarUrl} mode='aspectFill' /> : null}
-      <Button className='profile-action' openType='chooseAvatar' onChooseAvatar={(event) => void saveAvatar(() => uploadAvatar(event.detail.avatarUrl))}>选择微信头像</Button>
+      <Button className='profile-action' openType='chooseAvatar' onChooseAvatar={(event) => void saveAvatar(() => uploadAvatar(event.detail.avatarUrl))}>选择头像</Button>
       <Button className='profile-action' onClick={() => void saveAvatar(selectAndUploadImage)}>从相册选择头像</Button>
       <Input className='profile-input' type='nickname' value={nickname} maxlength={80} placeholder='昵称' onInput={(event) => setNickname(event.detail.value)} />
       <Button className='profile-action profile-action-primary' onClick={() => void save()}>保存昵称</Button>

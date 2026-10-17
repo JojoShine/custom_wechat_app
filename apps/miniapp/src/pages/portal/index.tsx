@@ -47,7 +47,7 @@ export default function Portal(): JSX.Element {
       <Button className='portal-login-card' onClick={openProfile}>
         <View className='portal-login-avatar portal-icon portal-icon-avatar' />
         <View className='portal-login-copy'>
-          <Text className='portal-login-title'>微信登录</Text>
+          <Text className='portal-login-title'>快捷登录</Text>
           <Text className='portal-login-subtitle'>账号与资料</Text>
         </View>
         <Text className='portal-arrow portal-login-arrow'>›</Text>

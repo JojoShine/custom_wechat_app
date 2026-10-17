@@ -44,15 +44,15 @@ export default function Login(): JSX.Element {
 
     <View className='login-panel'>
       <Text className='login-kicker'>ACCOUNT ACCESS</Text>
-      <Text className='login-title'>欢迎回来</Text>
-      <Text className='login-description'>使用微信账号进入，继续查看你的个人资料。</Text>
+      <Text className='login-title'>登录风物实验室</Text>
+      <Text className='login-description'>登录后可查看和管理你的个人资料。</Text>
       <View className='login-divider' />
       <Button className='login-action' loading={busy} disabled={busy} onClick={() => void login()}>
-        <Text>{busy ? '正在登录…' : '微信登录'}</Text>
+        <Text>{busy ? '正在登录…' : '快捷登录'}</Text>
         {!busy ? <Text className='login-action-arrow'>→</Text> : null}
       </Button>
       {error ? <Text className='login-error'>{error}</Text> : null}
-      <Text className='login-hint'>点击后将使用微信身份建立登录会话</Text>
+      <Text className='login-hint'>登录用于访问风物实验室的账号与资料</Text>
     </View>
 
     <View className='login-footer'>

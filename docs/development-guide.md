@@ -25,21 +25,25 @@ docker compose --project-directory . -f docker/local/database.compose.yaml up -d
 ```bash
 pnpm --filter @template/contracts build
 cd apps/api
-pnpm prisma migrate deploy
-pnpm prisma generate
+pnpm prisma migrate deploy --config prisma7.config.ts
+pnpm prisma generate --config prisma7.config.ts
 pnpm build
 node --env-file=.env dist/main.js
 ```
 
 后五行在 `apps/api` 中运行。确认 `http://localhost:3000/health` 返回 `{"status":"ok"}`，实际端口取决于 `PORT`。Prisma 配置 `apps/api/prisma7.config.ts` 读取该目录的 `.env`。生产只用 `migrate deploy` 应用已提交迁移，不用 `db push` 覆盖历史。
 
-新增业务表时编辑 `apps/api/prisma/schema.prisma`，在 `apps/api` 目录运行 `pnpm prisma migrate dev --name add_business_resource`（迁移名按实际功能替换），提交新迁移，再运行 `pnpm prisma generate`。已执行的迁移不修改、不删除；部署时由生产 Compose 的 `migrate` 服务先运行迁移，成功后再启动 API。
+新增业务表时编辑 `apps/api/prisma/schema.prisma`，在 `apps/api` 目录运行 `pnpm prisma migrate dev --config prisma7.config.ts --name add_business_resource`（迁移名按实际功能替换），提交新迁移，再运行 `pnpm prisma generate --config prisma7.config.ts`。已执行的迁移不修改、不删除；部署时由生产 Compose 的 `migrate` 服务先运行迁移，成功后再启动 API。
+
+回到仓库根目录后再执行后文的工作区命令（若刚完成上面的启动，先停止进程并执行 `cd ../..`，或另开根目录终端）。
 
 ## 3. 开发 NestJS 业务模块
 
 在 `apps/api/src/modules/business/<功能名>/` 建模块、控制器和服务，并在 `apps/api/src/app.module.ts` 的 `imports` 登记模块。沿用当前项目的 `*.module.ts`、`*.controller.ts`、`*.service.ts` 命名方式。服务通过 `apps/api/src/common/database/prisma.provider.ts` 的 `PRISMA` 注入客户端；需认证的路由沿用 `modules/auth/access.guard.ts`，不从客户端传来的用户 ID 直接判断身份。
 
 业务模块保存自己的资源、定价、可购买规则和履约状态。若需要收款，参考 `apps/api/src/modules/demo-payments/demo-payments.service.ts`：先在服务端确定金额和业务订单，再调用 `PaymentService.createPrepay`；用 `PaymentEvents.register` 处理已核对的支付事件。业务决定退款条件和本次金额，再调用 `RefundService.requestRefund`。平台模块不保存业务商品信息；详见[支付接入](payment-integration.md)。
+
+接口格式、路由索引、异常映射、鉴权与安全验收要求见[后端开发规范](backend-standards.md)。
 
 为新增 API 写覆盖成功、无权限和关键业务拒绝条件的测试。数据库约束写入迁移并在已有测试库验证。不要让生产请求依赖演示业务开关。
 

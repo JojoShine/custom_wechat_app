@@ -8,6 +8,7 @@ import { FilesModule } from './modules/files/files.module.js'
 import { TelemetryModule } from './modules/telemetry/telemetry.module.js'
 import { APP_LOGGER, appLogger } from './common/logging/logger.js'
 import { RequestLogger } from './common/logging/request-logger.js'
+import { RateLimitMiddleware } from './common/http/rate-limit.js'
 import { PaymentsModule } from './modules/payments/payments.module.js'
 import { DemoPaymentsModule } from './modules/demo-payments/demo-payments.module.js'
 import { WebviewModule } from './modules/webview/webview.module.js'
@@ -18,5 +19,5 @@ import { WebviewModule } from './modules/webview/webview.module.js'
   providers: [{ provide: APP_LOGGER, useValue: appLogger }, RequestLogger, { provide: APP_FILTER, useClass: ApiExceptionFilter }]
 })
 export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer): void { consumer.apply(RequestLogger).forRoutes('*') }
+  configure(consumer: MiddlewareConsumer): void { consumer.apply(RequestLogger, RateLimitMiddleware).forRoutes('*') }
 }

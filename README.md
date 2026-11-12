@@ -68,6 +68,7 @@ docker compose --project-directory . -f docker/local/database.compose.yaml up -d
 
 - [架构与业务边界](docs/architecture.md)
 - [从后端到前端的应用开发指南](docs/development-guide.md)
+- [后端接口、异常与安全规范](docs/backend-standards.md)
 - [环境变量与微信/OSS 配置](docs/configuration.md)
 - [支付、退款和对账接入](docs/payment-integration.md)
 - [微信支付直连与服务商集成说明](docs/payment-modes.md)

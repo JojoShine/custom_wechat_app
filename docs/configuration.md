@@ -15,6 +15,7 @@
 | 配置 | 用途与边界 |
 | --- | --- |
 | `DATABASE_URL` | PostgreSQL 连接串，含密码；本地数据库由 `docker/local/database.compose.yaml` 提供，生产指向自己的数据库。 |
+| `TRUST_PROXY` | `1` 仅用于 API 位于可信单层反向代理之后且端口不对公网开放时；用于按真实客户端 IP 限流。其他情况使用 `0`。 |
 | `PORT` | API 容器或本地进程监听端口，生产 Compose 使用容器内 `3000`。 |
 | `JWT_SECRET` | 小程序会话签名密钥；每个环境独立生成。 |
 | `WECHAT_APP_ID`、`WECHAT_APP_SECRET` | 微信登录与用户信息服务端调用；AppID 与开发者工具一致。 |

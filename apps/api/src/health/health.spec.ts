@@ -29,4 +29,22 @@ describe('GET /health', () => {
       await app.close()
     }
   })
+
+  it('returns 429 with retry guidance after repeated login attempts', async () => {
+    const app = await NestFactory.create(AppModule, { logger: false, abortOnError: false })
+    await app.listen(0)
+    try {
+      const url = `${await app.getUrl()}/auth/wechat`
+      for (let i = 0; i < 10; i++) {
+        const response = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })
+        expect(response.status).toBe(400)
+      }
+      const response = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })
+      expect(response.status).toBe(429)
+      expect(Number(response.headers.get('retry-after'))).toBeGreaterThan(0)
+      expect(await response.json()).toEqual({ code: 'RATE_LIMITED', message: 'Too many requests' })
+    } finally {
+      await app.close()
+    }
+  })
 })
